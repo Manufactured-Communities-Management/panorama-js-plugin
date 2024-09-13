@@ -1,5 +1,5 @@
 import {LeRed} from '@lowentry/react-redux';
-import {LeUtils, INT_LAX, STRING, STRING_ANY, IS_ARRAY, IS_OBJECT, ISSET, ARRAY} from '@lowentry/utils';
+import {LeUtils, STRING, STRING_ANY, IS_ARRAY, IS_OBJECT, ISSET, ARRAY} from '@lowentry/utils';
 
 
 export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, skus = null, locationId:givenLocationId = null, sceneHost:givenSceneHost = null, onError = null, errorWidget = null, loadingWidget = null, ...props}) =>
@@ -7,8 +7,6 @@ export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, skus = null, lo
 	const sceneId = LeRed.useMemo(() => STRING(sceneId).replace(/[^0-9]+/g, ''), givenSceneId);
 	const sceneHost = STRING_ANY(sceneHost, 'https://d1i78mubvvqzk6.cloudfront.net');
 	const sceneUrl = sceneHost + '/' + sceneId + '/';
-	
-	const locationId = Math.max(0, INT_LAX(givenLocationId));
 	
 	
 	const getErrorWidget = LeRed.useCallback((error) =>
@@ -91,6 +89,20 @@ const getVariationIndexOfVariationGroupBySku = (variationGroup, sku) =>
 	return variationIndex;
 };
 
+const getLocationIndexByLocationId = (locations, locationId) =>
+{
+	let locationIndex = null;
+	LeUtils.each(locations, (location, index) =>
+	{
+		if(location?.locationId === locationId)
+		{
+			locationIndex = index;
+			return false;
+		}
+	});
+	return locationIndex;
+};
+
 
 const getSelectedVariationIndexesBySku = (variationGroups, skus) =>
 {
@@ -147,7 +159,7 @@ const getSelectedVariationIndexesBySku = (variationGroups, skus) =>
 };
 
 
-const getTexturePathsToRender = (variationGroups, selectedVariationIndexes, locationVariationGroups, locationId, sceneUrl) =>
+const getTexturePathsToRender = (variationGroups, selectedVariationIndexes, locationVariationGroups, locationIndex, sceneUrl) =>
 {
 	if(!selectedVariationIndexes.length)
 	{
@@ -172,7 +184,7 @@ const getTexturePathsToRender = (variationGroups, selectedVariationIndexes, loca
 			variationIndexesForLocation.push(0);
 		}
 	});
-	result.push({basePath:sceneUrl + 'img_' + locationId + '_' + variationIndexesForLocation.join('_')});
+	result.push({basePath:sceneUrl + 'img_' + locationIndex + '_' + variationIndexesForLocation.join('_')});
 	
 	/** add layers **/
 	LeUtils.each(variationGroups, (layerGroup, layerGroupIndex) =>
@@ -194,8 +206,8 @@ const getTexturePathsToRender = (variationGroups, selectedVariationIndexes, loca
 				variationIndexesForLocation.push(0);
 			}
 		});
-		const colorPath = 'img_' + locationId + '_' + layerGroupIndex + 'c_' + variationIndexesForLocation.join('_');
-		const maskPath = 'img_' + locationId + '_' + layerGroupIndex + 'm_' + variationIndexesForLocation.join('_');
+		const colorPath = 'img_' + locationIndex + '_' + layerGroupIndex + 'c_' + variationIndexesForLocation.join('_');
+		const maskPath = 'img_' + locationIndex + '_' + layerGroupIndex + 'm_' + variationIndexesForLocation.join('_');
 		result.push({basePath:sceneUrl + colorPath, maskBasePath:sceneUrl + maskPath});
 	});
 	
@@ -208,24 +220,26 @@ const PanoramaViewerParser = ({...props}) =>
 	const {variations, sceneId, skus, locationId, sceneHost, sceneUrl, getErrorWidget, getLoadingWidget} = props;
 	
 	const variationGroups = variations?.variationGroups;
-	const locationsVariationGroups = variations?.locations;
-	const locationVariationGroups = locationsVariationGroups?.[locationId]?.variationGroups;
+	const locations = variations?.locations;
+	if(!variationGroups || !locations)
+	{
+		return getErrorWidget({canRetry:false, id:'could-not-connect-to-scene', message:'Couldn\'t connect to scene: ' + sceneId, reason:'the scene data isn\'t compatible with our frontend, it doesn\'t contain the information that should be in there', data:{sceneId, sceneHost, sceneUrl, variations}});
+	}
 	
-	if(!variationGroups || !locationsVariationGroups)
+	const locationIndex = LeRed.useMemo(() => locationId ? getLocationIndexByLocationId(locations, locationId) : 0, [locationId]);
+	if(!ISSET(locationIndex) || !(locationIndex in locations))
 	{
-		return getErrorWidget({canRetry:false, id:'could-not-connect-to-scene', message:'Couldn\'t connect to scene: ' + sceneId, reason:'the scene data isn\'t compatible with our frontend, it doesn\'t contain the data that should be in there', data:{sceneId, sceneHost, sceneUrl, variations}});
+		return getErrorWidget({canRetry:false, id:'invalid-location-id', message:'Invalid location ID: ' + locationId, reason:'the location ID doesn\'t exist in the scene', data:{sceneId, sceneHost, sceneUrl, variations}});
 	}
-	if(!(locationId in locationsVariationGroups))
-	{
-		return getErrorWidget({canRetry:false, id:'invalid-location-id', message:'Invalid location ID: ' + locationId, reason:'the location ID doesn\'t exist in the scene data', data:{sceneId, sceneHost, sceneUrl, variations}});
-	}
+	
+	const locationVariationGroups = locations?.[locationIndex]?.variationGroups;
 	if(!locationVariationGroups)
 	{
-		return getErrorWidget({canRetry:false, id:'could-not-connect-to-scene', message:'Couldn\'t connect to scene: ' + sceneId, reason:'the scene data isn\'t compatible with our frontend, it doesn\'t contain the data that should be in there', data:{sceneId, sceneHost, sceneUrl, variations}});
+		return getErrorWidget({canRetry:false, id:'could-not-connect-to-scene', message:'Couldn\'t connect to scene: ' + sceneId, reason:'the scene data isn\'t compatible with our frontend, it doesn\'t contain the information that should be in there', data:{sceneId, sceneHost, sceneUrl, variations}});
 	}
 	
-	const selectedVariationIndexes = getSelectedVariationIndexesBySku(variationGroups, skus);
-	const texturePathsToRender = getTexturePathsToRender(variationGroups, selectedVariationIndexes, locationVariationGroups, locationId, sceneUrl);
+	const selectedVariationIndexes = LeRed.useMemo(() => getSelectedVariationIndexesBySku(variationGroups, skus), [variationGroups, skus]);
+	const texturePathsToRender = LeRed.useMemo(() => getTexturePathsToRender(variationGroups, selectedVariationIndexes, locationVariationGroups, locationIndex, sceneUrl), [variationGroups, selectedVariationIndexes, locationVariationGroups, locationIndex, sceneUrl]);
 	
 	
 	return (<>
