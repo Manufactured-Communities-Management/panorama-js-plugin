@@ -1,5 +1,5 @@
 import {LeRed} from '@lowentry/react-redux';
-import {LeUtils, INT_LAX, STRING, STRING_ANY} from '@lowentry/utils';
+import {LeUtils, INT_LAX, STRING, STRING_ANY, IS_ARRAY, IS_OBJECT, ISSET, ARRAY} from '@lowentry/utils';
 
 
 export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, skus = null, locationId:givenLocationId = null, sceneHost:givenSceneHost = null, onError = null, errorWidget = null, loadingWidget = null, ...props}) =>
@@ -28,6 +28,7 @@ export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, skus = null, lo
 	{
 		return getErrorWidget({canRetry:false, id:'missing-scene-id', message:'Missing scene ID', reason:'the PanoramaViewer component was rendered without being given a valid sceneId', data:{}});
 	}
+	
 	return (<>
 		<PanoramaViewerRetriever sceneId={sceneId} skus={skus} locationId={locationId} sceneHost={sceneHost} getErrorWidget={getErrorWidget} getLoadingWidget={getLoadingWidget} {...props}/>
 	</>);
@@ -46,12 +47,13 @@ const PanoramaViewerRetriever = LeRed.memo(({...props}) =>
 	
 	if(!variationsLoading && !variations)
 	{
-		return getErrorWidget({canRetry:true, id:'could-not-connect-to-scene', message:'Couldn\'t connect to scene: ' + props.sceneId, reason:STRING(variationsError), data:{sceneId, sceneHost, sceneUrl}});
+		return getErrorWidget({canRetry:true, id:'could-not-connect-to-scene', message:'Couldn\'t connect to scene: ' + sceneId, reason:STRING(variationsError), data:{sceneId, sceneHost, sceneUrl}});
 	}
 	if(variationsLoading)
 	{
 		return getLoadingWidget();
 	}
+	
 	return (<>
 		<PanoramaViewerParser variations={variations} {...props}/>
 	</>);
@@ -61,20 +63,172 @@ const PanoramaViewerRetriever = LeRed.memo(({...props}) =>
 //
 
 
+const getVariationGroupIndexByGroupId = (variationGroups, groupId) =>
+{
+	let variationGroupIndex = null;
+	LeUtils.each(variationGroups, (group, index) =>
+	{
+		if(group?.groupId === groupId)
+		{
+			variationGroupIndex = index;
+			return false;
+		}
+	});
+	return variationGroupIndex;
+};
+
+const getVariationIndexOfVariationGroupBySku = (variationGroup, sku) =>
+{
+	let variationIndex = null;
+	LeUtils.each(variationGroup?.variations, (variation, index) =>
+	{
+		if(variation?.sku === sku)
+		{
+			variationIndex = index;
+			return false;
+		}
+	});
+	return variationIndex;
+};
+
+
+const getSelectedVariationIndexesBySku = (variationGroups, skus) =>
+{
+	const selectedVariationIndexes = LeUtils.mapToArray(variationGroups, () => 0);
+	if(IS_ARRAY(skus))
+	{
+		LeUtils.each(skus, (sku, groupIndex) =>
+		{
+			let skuFound = false;
+			LeUtils.each(variationGroups, (group, groupIndex) =>
+			{
+				let variationIndex = getVariationIndexOfVariationGroupBySku(group, sku);
+				if(variationIndex !== null)
+				{
+					selectedVariationIndexes[groupIndex] = variationIndex;
+					skuFound = true;
+				}
+			});
+			if(!skuFound)
+			{
+				console.warn('[PanoramaViewer] SKU not found:', sku);
+			}
+		});
+	}
+	else if(IS_OBJECT(skus))
+	{
+		LeUtils.each(skus, (sku, groupId) =>
+		{
+			const groupIndex = getVariationGroupIndexByGroupId(variationGroups, groupId);
+			if(groupIndex !== null)
+			{
+				const group = variationGroups[groupIndex];
+				const variationIndex = getVariationIndexOfVariationGroupBySku(group, sku);
+				if(variationIndex !== null)
+				{
+					selectedVariationIndexes[groupIndex] = variationIndex;
+				}
+				else
+				{
+					console.warn('[PanoramaViewer] SKU not found in group:', sku, group);
+				}
+			}
+			else
+			{
+				console.warn('[PanoramaViewer] Group ID not found:', groupId);
+			}
+		});
+	}
+	else if(ISSET(skus))
+	{
+		console.warn('[PanoramaViewer] Invalid SKUs:', skus);
+	}
+	return selectedVariationIndexes;
+};
+
+
+const getTexturePathsToRender = (variationGroups, selectedVariationIndexes, locationVariationGroups, locationId, sceneUrl) =>
+{
+	if(!selectedVariationIndexes.length)
+	{
+		return [];
+	}
+	
+	let result = [];
+	let variationIndexesForLocation = [];
+	let locationVariationGroupsIndexed = {};
+	
+	/** add full render **/
+	LeUtils.each(variationGroups, (group, groupIndex) =>
+	{
+		const locationVariationGroup = locationVariationGroups?.[getVariationGroupIndexByGroupId(locationVariationGroups, group?.groupId)];
+		locationVariationGroupsIndexed[group?.groupId] = locationVariationGroup;
+		if(locationVariationGroup && !locationVariationGroup?.layer)
+		{
+			variationIndexesForLocation.push(selectedVariationIndexes[groupIndex] ?? 0);
+		}
+		else
+		{
+			variationIndexesForLocation.push(0);
+		}
+	});
+	result.push({basePath:sceneUrl + 'img_' + locationId + '_' + variationIndexesForLocation.join('_')});
+	
+	/** add layers **/
+	LeUtils.each(variationGroups, (layerGroup, layerGroupIndex) =>
+	{
+		const locationVariationGroup = locationVariationGroupsIndexed[layerGroup?.groupId];
+		if(!locationVariationGroup || !locationVariationGroup?.layer)
+		{
+			return;
+		}
+		variationIndexesForLocation = [];
+		LeUtils.each(variationGroups, (group, groupIndex) =>
+		{
+			if((layerGroup?.groupId === group?.groupId) || ARRAY(locationVariationGroup?.layerDependencyGroupIds).includes(group?.groupId))
+			{
+				variationIndexesForLocation.push(selectedVariationIndexes[groupIndex] ?? 0);
+			}
+			else
+			{
+				variationIndexesForLocation.push(0);
+			}
+		});
+		const colorPath = 'img_' + locationId + '_' + layerGroupIndex + 'c_' + variationIndexesForLocation.join('_');
+		const maskPath = 'img_' + locationId + '_' + layerGroupIndex + 'm_' + variationIndexesForLocation.join('_');
+		result.push({basePath:sceneUrl + colorPath, maskBasePath:sceneUrl + maskPath});
+	});
+	
+	return result;
+};
+
+
 const PanoramaViewerParser = ({...props}) =>
 {
-	const {variations, skus, locationId, sceneUrl, getErrorWidget, getLoadingWidget} = props;
+	const {variations, sceneId, skus, locationId, sceneHost, sceneUrl, getErrorWidget, getLoadingWidget} = props;
 	
-	const location = LeUtils.find(variations.locations, location => location.id === locationId);
+	const variationGroups = variations?.variationGroups;
+	const locationsVariationGroups = variations?.locations;
+	const locationVariationGroups = locationsVariationGroups?.[locationId]?.variationGroups;
 	
+	if(!variationGroups || !locationsVariationGroups)
+	{
+		return getErrorWidget({canRetry:false, id:'could-not-connect-to-scene', message:'Couldn\'t connect to scene: ' + sceneId, reason:'the scene data isn\'t compatible with our frontend, it doesn\'t contain the data that should be in there', data:{sceneId, sceneHost, sceneUrl, variations}});
+	}
+	if(!(locationId in locationsVariationGroups))
+	{
+		return getErrorWidget({canRetry:false, id:'invalid-location-id', message:'Invalid location ID: ' + locationId, reason:'the location ID doesn\'t exist in the scene data', data:{sceneId, sceneHost, sceneUrl, variations}});
+	}
+	if(!locationVariationGroups)
+	{
+		return getErrorWidget({canRetry:false, id:'could-not-connect-to-scene', message:'Couldn\'t connect to scene: ' + sceneId, reason:'the scene data isn\'t compatible with our frontend, it doesn\'t contain the data that should be in there', data:{sceneId, sceneHost, sceneUrl, variations}});
+	}
 	
-	
-	
-	const currentImages = LeRed.useSelector(stateVariations.selectors.currentImages);
-	const selectedVariationSkus = LeRed.useSelector(stateVariations.selectors.selectedVariationSkus);
+	const selectedVariationIndexes = getSelectedVariationIndexesBySku(variationGroups, skus);
+	const texturePathsToRender = getTexturePathsToRender(variationGroups, selectedVariationIndexes, locationVariationGroups, locationId, sceneUrl);
 	
 	
 	return (<>
-		<PanoramaViewer src={LeUtils.map(currentImages, item => ({...item, basePath:(item.basePath ? sceneUrl + item.basePath : undefined), maskBasePath:(item.maskBasePath ? sceneUrl + item.maskBasePath : undefined)}))}/>
+		<PanoramaViewer src={texturePathsToRender}/>
 	</>);
 };
