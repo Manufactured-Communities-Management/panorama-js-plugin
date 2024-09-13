@@ -1,6 +1,8 @@
-import {React, LeRed, LeUtils, ISSET, IS_ARRAY, ARRAY, IS_OBJECT, OBJECT, STRING, STRING_ANY, INT, INT_ANY, FLOAT, FLOAT_ANY, INT_LAX, INT_LAX_ANY, FLOAT_LAX, FLOAT_LAX_ANY, BROWSER_URL_QUERY, getBrowserUrlQuery, getBrowserUrlQueryUint, getBrowserUrlQueryBool, setBrowserUrlQuery, dispose, loadTextures, createCubeTexture, createCubeMaterial, getTexturePathsOfBasePath, PanoramaRenderer, PanoramaViewer, stateVariations, AppStateSlices} from './../../../imports.js';
+import {LeRed} from '@lowentry/react-redux';
+import {LeUtils, FLOAT_LAX_ANY} from '@lowentry/utils';
+import {MathUtils} from 'three';
+import {PerspectiveCamera} from '@react-three/drei';
 import {useFrame, useThree} from '@react-three/fiber';
-import * as THREE from 'three';
 
 
 export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged}) =>
@@ -20,7 +22,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	const {camera, gl} = useThree();
 	const isDragging = LeRed.useRef(false);
 	const startMousePosition = LeRed.useRef({x:0, y:0});
-	const startCameraRotation = LeRed.useRef({yaw:FLOAT_ANY(initialCameraRotation?.yaw, 0), pitch:FLOAT_ANY(initialCameraRotation?.pitch, 0)});
+	const startCameraRotation = LeRed.useRef({yaw:FLOAT_LAX_ANY(initialCameraRotation?.yaw, 0), pitch:FLOAT_LAX_ANY(initialCameraRotation?.pitch, 0)});
 	const cameraRotation = LeRed.useRef(LeUtils.clone(startCameraRotation.current));
 	const cameraRotationSpeed = LeRed.useRef({yaw:0, pitch:0});
 	const cameraFov = LeRed.useRef(clampFov(initialFov));
@@ -72,7 +74,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 		const deltaY = event.clientY - startMousePosition.current.y;
 		const newCameraRotation = {
 			yaw:  startCameraRotation.current.yaw + (deltaX * ROTATION_SPEED * cameraFovRotationSpeedMultiplier()),
-			pitch:THREE.MathUtils.clamp(startCameraRotation.current.pitch + (deltaY * ROTATION_SPEED * cameraFovRotationSpeedMultiplier()), -Math.PI / 2, Math.PI / 2),
+			pitch:MathUtils.clamp(startCameraRotation.current.pitch + (deltaY * ROTATION_SPEED * cameraFovRotationSpeedMultiplier()), -Math.PI / 2, Math.PI / 2),
 		};
 		cameraRotationSpeed.current = {
 			yaw:  newCameraRotation.yaw - cameraRotation.current.yaw,
@@ -102,7 +104,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 		{
 			cameraRotation.current = {
 				yaw:  cameraRotation.current.yaw + cameraRotationSpeed.current.yaw,
-				pitch:THREE.MathUtils.clamp(cameraRotation.current.pitch + cameraRotationSpeed.current.pitch, -Math.PI / 2, Math.PI / 2),
+				pitch:MathUtils.clamp(cameraRotation.current.pitch + cameraRotationSpeed.current.pitch, -Math.PI / 2, Math.PI / 2),
 			};
 			cameraRotationSpeed.current.yaw *= (1 - ROTATION_DRAG_WHEN_SLIDING);
 			cameraRotationSpeed.current.pitch *= (1 - ROTATION_DRAG_WHEN_SLIDING);
@@ -121,7 +123,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 			onCameraRotationChanged?.(LeUtils.clone(cameraRotation.current));
 		}
 		
-		if(camera instanceof THREE.PerspectiveCamera)
+		if(camera instanceof PerspectiveCamera)
 		{
 			if(cameraFov.current !== camera.fov)
 			{

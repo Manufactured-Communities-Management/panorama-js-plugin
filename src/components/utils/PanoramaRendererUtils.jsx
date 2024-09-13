@@ -1,6 +1,5 @@
-import {React, LeRed, LeUtils, ISSET, IS_ARRAY, ARRAY, IS_OBJECT, OBJECT, STRING, STRING_ANY, INT, INT_ANY, FLOAT, FLOAT_ANY, INT_LAX, INT_LAX_ANY, FLOAT_LAX, FLOAT_LAX_ANY, BROWSER_URL_QUERY, getBrowserUrlQuery, getBrowserUrlQueryUint, getBrowserUrlQueryBool, setBrowserUrlQuery, PanoramaControls, PanoramaRenderer, PanoramaViewer, stateVariations, AppStateSlices} from './../../../imports.js';
-import * as THREE from 'three';
 import {KTX2Loader} from 'three-stdlib';
+import {CompressedCubeTexture, CubeTexture, LinearFilter, LinearSRGBColorSpace, MeshBasicMaterial, TextureLoader, UnsignedByteType} from 'three';
 
 
 export const dispose = (...objects) =>
@@ -19,7 +18,7 @@ export const dispose = (...objects) =>
 		}
 		catch(e)
 		{
-			console.error('THREE disposal failed:', typeof obj, obj?.constructor?.name, e);
+			console.error('[PanoramaViewer] THREE disposal failed:', typeof obj, obj?.constructor?.name, e);
 		}
 	});
 };
@@ -52,7 +51,7 @@ export const loadTextures = (() =>
 			
 			if(textureLoader === null)
 			{
-				textureLoader = new THREE.TextureLoader();
+				textureLoader = new TextureLoader();
 			}
 			return textureLoader;
 		})();
@@ -60,11 +59,11 @@ export const loadTextures = (() =>
 		const loadedTextures = await Promise.all(textures.map(url => loader.loadAsync(url)));
 		loadedTextures.forEach(tex =>
 		{
-			tex.colorSpace = THREE.LinearSRGBColorSpace;
+			tex.colorSpace = LinearSRGBColorSpace;
 			tex.anisotropy = 16;
-			tex.type = THREE.UnsignedByteType;
-			tex.minFilter = THREE.LinearFilter;
-			tex.magFilter = THREE.LinearFilter;
+			tex.type = UnsignedByteType;
+			tex.minFilter = LinearFilter;
+			tex.magFilter = LinearFilter;
 			tex.generateMipmaps = false;
 			tex.flipY = true;
 			tex.needsUpdate = true;
@@ -80,9 +79,9 @@ export const createCubeTexture = (textures) =>
 	{
 		if(textures[0].isCompressedTexture)
 		{
-			return new THREE.CompressedCubeTexture(textures.map(tex => ({...tex.image, ...tex})), textures[0].format, textures[0].type);
+			return new CompressedCubeTexture(textures.map(tex => ({...tex.image, ...tex})), textures[0].format, textures[0].type);
 		}
-		return new THREE.CubeTexture(textures.map(tex => tex.image));
+		return new CubeTexture(textures.map(tex => tex.image));
 	})();
 	
 	cubeTexture.format = textures[0].format;
@@ -102,7 +101,7 @@ export const createCubeTexture = (textures) =>
 
 export const createCubeMaterial = ({maskEnvMap, ...props}) =>
 {
-	const material = new THREE.MeshBasicMaterial(props);
+	const material = new MeshBasicMaterial(props);
 	material.onBeforeCompile = (shader) =>
 	{
 		shader.uniforms.maskEnvMap = {value:maskEnvMap};
@@ -112,14 +111,14 @@ export const createCubeMaterial = ({maskEnvMap, ...props}) =>
 		const mainStartIndex = fragmentShaderLower.indexOf('void main()'.toLowerCase());
 		if(mainStartIndex < 0)
 		{
-			console.error('createCubeMaterial error: shader fragment "void main()" not found', shader.fragmentShader);
+			console.error('[PanoramaViewer] createCubeMaterial error: shader fragment "void main()" not found', shader.fragmentShader);
 			return;
 		}
 		
 		const envmapFragmentStartIndex = fragmentShaderLower.indexOf('#include <envmap_fragment>'.toLowerCase());
 		if(envmapFragmentStartIndex < 0)
 		{
-			console.error('createCubeMaterial error: shader fragment "#include <envmap_fragment>" not found', shader.fragmentShader);
+			console.error('[PanoramaViewer] createCubeMaterial error: shader fragment "#include <envmap_fragment>" not found', shader.fragmentShader);
 			return;
 		}
 		const envmapFragmentEndIndex = fragmentShaderLower.indexOf('>'.toLowerCase(), envmapFragmentStartIndex) + 1;

@@ -27,15 +27,23 @@
     "@babel/runtime": "*",
     "@lowentry/react-redux": "^1",
     "@lowentry/utils": "*",
+    "@react-three/drei": "^9.111.3",
+    "@react-three/fiber": "^8.17.6",
     "react": "*",
-    "react-dom": "*"
+    "react-dom": "*",
+    "three": "^0.167.1",
+    "three-stdlib": "^2.32.2"
   },
   "peerDependencies": {
     "@babel/runtime": "*",
     "@lowentry/react-redux": "^1",
     "@lowentry/utils": "*",
+    "@react-three/drei": "^9.111.3",
+    "@react-three/fiber": "^8.17.6",
     "react": "*",
-    "react-dom": "*"
+    "react-dom": "*",
+    "three": "^0.167.1",
+    "three-stdlib": "^2.32.2"
   },
   "devDependencies": {
     "@babel/core": "^7.24.7",

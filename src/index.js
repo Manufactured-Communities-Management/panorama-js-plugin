@@ -1,1 +1,1 @@
-export {PanoramaViewer} from './components/PanoramaViewer.jsx';
+export {PanoramaViewer} from './components/PanoramaViewer';
