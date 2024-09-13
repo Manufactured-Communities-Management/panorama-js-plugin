@@ -1,0 +1,58 @@
+{
+  "name": "@lowentry/mui",
+  "version": "1.2.14",
+  "private": false,
+  "main": "./index.js",
+  "description": "Provides utilities for Material UI.",
+  "author": "Low Entry",
+  "license": "MIT",
+  "keywords": [
+    "materialui",
+    "mui",
+    "plugin",
+    "utility",
+    "utilities"
+  ],
+  "homepage": "https://github.com/LowEntry/lowentry-js-mui",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LowEntry/lowentry-js-mui.git"
+  },
+  "scripts": {
+    "build": "npm exec -- rollup -c",
+    "prepublishOnly": "rm -r src && mv dist/* ./ && rm -r dist",
+    "test": ""
+  },
+  "dependencies": {
+    "@babel/runtime": "*",
+    "@lowentry/react-redux": "^1",
+    "@lowentry/utils": "*",
+    "react": "*",
+    "react-dom": "*"
+  },
+  "peerDependencies": {
+    "@babel/runtime": "*",
+    "@lowentry/react-redux": "^1",
+    "@lowentry/utils": "*",
+    "react": "*",
+    "react-dom": "*"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.7",
+    "@babel/plugin-transform-runtime": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
+    "@babel/preset-react": "^7.24.7",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-url": "^8.0.2",
+    "autoprefixer": "^10.4.19",
+    "cssnano": "^7.0.2",
+    "fs-extra": "^11.2.0",
+    "less": "^4.2.0",
+    "rollup": "^2.79.1",
+    "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-postcss": "^4.0.2",
+    "sass": "^1.77.5"
+  }
+}
