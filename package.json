@@ -1,22 +1,23 @@
 {
-  "name": "@lowentry/mui",
-  "version": "1.2.14",
+  "name": "@mcmhomes/panorama-viewer",
+  "version": "0.0.1",
   "private": false,
   "main": "./index.js",
-  "description": "Provides utilities for Material UI.",
-  "author": "Low Entry",
-  "license": "MIT",
+  "description": "Provides React components to render panoramas.",
+  "author": "MCM Homes",
+  "license": "proprietary",
   "keywords": [
-    "materialui",
-    "mui",
-    "plugin",
+    "mcmhomes",
+    "react",
+    "panoramas",
+    "360",
     "utility",
     "utilities"
   ],
-  "homepage": "https://github.com/LowEntry/lowentry-js-mui",
+  "homepage": "https://github.com/Manufactured-Communities-Management/panorama-js-plugin",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LowEntry/lowentry-js-mui.git"
+    "url": "git+https://github.com/Manufactured-Communities-Management/panorama-js-plugin.git"
   },
   "scripts": {
     "build": "npm exec -- rollup -c",
