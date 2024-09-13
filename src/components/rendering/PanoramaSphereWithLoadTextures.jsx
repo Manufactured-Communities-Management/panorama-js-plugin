@@ -1,7 +1,7 @@
 import {LeRed} from '@lowentry/react-redux';
 import {SphereGeometry} from 'three';
 import {useThree} from '@react-three/fiber';
-import {createCubeMaterial, createCubeTexture, dispose} from '../utils/PanoramaRendererUtils';
+import {createCubeMaterial, createCubeTexture, dispose} from '../utils/PanoramaRendererUtils.jsx';
 
 
 export const PanoramaSphereWithLoadTextures = LeRed.memo(({radius, textures, maskTextures}) =>

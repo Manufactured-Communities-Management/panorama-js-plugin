@@ -1,7 +1,7 @@
 import {LeRed} from '@lowentry/react-redux';
 import {ISSET} from '@lowentry/utils';
-import {getLocationIndexByLocationId, getSelectedVariationIndexesBySku, getTexturePathsToRender} from '../utils/PanoramaVariationParsingUtils';
-import {PanoramaLoaderInitialTextureDownloader} from './PanoramaLoaderInitialTextureDownloader';
+import {getLocationIndexByLocationId, getSelectedVariationIndexesBySku, getTexturePathsToRender} from '../utils/PanoramaVariationParsingUtils.jsx';
+import {PanoramaLoaderInitialTextureDownloader} from './PanoramaLoaderInitialTextureDownloader.jsx';
 
 
 export const PanoramaLoaderVariationsParser = ({src = null, ...props}) =>

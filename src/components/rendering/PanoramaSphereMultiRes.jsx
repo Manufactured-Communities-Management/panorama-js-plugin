@@ -1,8 +1,8 @@
 import {LeRed} from '@lowentry/react-redux';
 import {ISSET} from '@lowentry/utils';
 import {useThree} from '@react-three/fiber';
-import {dispose, loadTextures} from '../utils/PanoramaRendererUtils';
-import {PanoramaSphereWithLoadTextures} from './PanoramaSphereWithLoadTextures';
+import {dispose, loadTextures} from '../utils/PanoramaRendererUtils.jsx';
+import {PanoramaSphereWithLoadTextures} from './PanoramaSphereWithLoadTextures.jsx';
 
 
 export const PanoramaSphereMultiRes = LeRed.memo(({radius, textures, maskTextures}) =>

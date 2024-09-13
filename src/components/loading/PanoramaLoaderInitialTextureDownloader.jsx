@@ -1,6 +1,6 @@
 import {LeRed} from '@lowentry/react-redux';
 import {LeUtils, ISSET, STRING} from '@lowentry/utils';
-import {PanoramaRenderer} from '../rendering/PanoramaRenderer';
+import {PanoramaRenderer} from '../rendering/PanoramaRenderer.jsx';
 
 
 export const PanoramaLoaderInitialTextureDownloader = ({src, ...props}) =>

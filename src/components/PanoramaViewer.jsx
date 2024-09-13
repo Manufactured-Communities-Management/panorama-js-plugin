@@ -1,6 +1,6 @@
 import {LeRed} from '@lowentry/react-redux';
 import {STRING, STRING_ANY, FLOAT_LAX_ANY} from '@lowentry/utils';
-import {PanoramaLoaderVariationsRetriever} from './loading/PanoramaLoaderVariationsRetriever';
+import {PanoramaLoaderVariationsRetriever} from './loading/PanoramaLoaderVariationsRetriever.jsx';
 
 
 export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, skus = null, locationId:givenLocationId = null, sceneHost:givenSceneHost = null, onError = null, errorWidget = null, loadingWidget = null, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, ...other}) =>

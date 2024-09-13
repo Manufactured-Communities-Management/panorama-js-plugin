@@ -2,9 +2,9 @@ import {LeRed} from '@lowentry/react-redux';
 import {LeUtils} from '@lowentry/utils';
 import {Canvas} from '@react-three/fiber';
 import {PerspectiveCamera} from '@react-three/drei';
-import {getTexturePathsOfBasePath} from '../utils/PanoramaRendererUtils';
-import {PanoramaControls} from '../gameplay/PanoramaControls';
-import {PanoramaSphereMultiRes} from './PanoramaSphereMultiRes';
+import {getTexturePathsOfBasePath} from '../utils/PanoramaRendererUtils.jsx';
+import {PanoramaControls} from '../gameplay/PanoramaControls.jsx';
+import {PanoramaSphereMultiRes} from './PanoramaSphereMultiRes.jsx';
 
 
 export const PanoramaRenderer = LeRed.memo(({src, hotspots, minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged}) =>

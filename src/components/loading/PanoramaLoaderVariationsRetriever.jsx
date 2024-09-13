@@ -1,9 +1,9 @@
 import {LeRed} from '@lowentry/react-redux';
 import {STRING} from '@lowentry/utils';
-import {PanoramaLoaderVariationsParser} from './PanoramaLoaderVariationsParser';
+import {PanoramaLoaderVariationsParser} from './PanoramaLoaderVariationsParser.jsx';
 
 
-export const PanoramaLoaderVariationsRetriever = LeRed.memo(({variations = null, ...props}) =>
+export const PanoramaLoaderVariationsRetriever = LeRed.memo(({variations:givenVariations = null, ...props}) =>
 {
 	const {sceneId, sceneHost, sceneUrl, getErrorWidget, getLoadingWidget} = props;
 	
