@@ -43,7 +43,7 @@ export const loadTextures = (() =>
 				if(ktx2Loader === null)
 				{
 					ktx2Loader = new KTX2Loader();
-					ktx2Loader.setTranscoderPath('/basis_transcoder/');
+					ktx2Loader.setTranscoderPath('https://d11xh1fqz0z9k8.cloudfront.net/basis_transcoder/');
 					ktx2Loader.detectSupport(gl);
 				}
 				return ktx2Loader;
