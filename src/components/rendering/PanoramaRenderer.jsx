@@ -1,3 +1,4 @@
+import React from 'react';
 import {LeRed} from '@lowentry/react-redux';
 import {LeUtils} from '@lowentry/utils';
 import {Canvas} from '@react-three/fiber';
@@ -10,7 +11,7 @@ import {PanoramaSphereMultiRes} from './PanoramaSphereMultiRes.jsx';
 export const PanoramaRenderer = LeRed.memo(({src, hotspots, minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged, basisTranscoderPath}) =>
 {
 	return (
-		<div className="app-widget-panorama-renderer">
+		<div style={{width:'100%', height:'100%', overflow:'hidden'}}>
 			<Canvas flat={true} linear={true}>
 				<PerspectiveCamera makeDefault position={[0, 0, 0]}/>
 				<PanoramaControls minFov={minFov} maxFov={maxFov} initialFov={initialFov} onFovChanged={onFovChanged} initialCameraRotation={initialCameraRotation} onCameraRotationChanged={onCameraRotationChanged}/>

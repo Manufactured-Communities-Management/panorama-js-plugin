@@ -1,3 +1,4 @@
+import React from 'react';
 import {LeRed} from '@lowentry/react-redux';
 import {SphereGeometry} from 'three';
 import {useThree} from '@react-three/fiber';

@@ -1,3 +1,4 @@
+import React from 'react';
 import {LeRed} from '@lowentry/react-redux';
 import {LeUtils, ISSET, STRING} from '@lowentry/utils';
 import {PanoramaRenderer} from '../rendering/PanoramaRenderer.jsx';

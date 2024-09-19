@@ -1,3 +1,4 @@
+import React from 'react';
 import {LeRed} from '@lowentry/react-redux';
 import {STRING} from '@lowentry/utils';
 import {PanoramaLoaderVariationsRetriever} from './PanoramaLoaderVariationsRetriever.jsx';

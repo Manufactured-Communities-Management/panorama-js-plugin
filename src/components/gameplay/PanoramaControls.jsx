@@ -1,7 +1,6 @@
 import {LeRed} from '@lowentry/react-redux';
 import {LeUtils, FLOAT_LAX_ANY} from '@lowentry/utils';
 import {MathUtils} from 'three';
-import {PerspectiveCamera} from '@react-three/drei';
 import {useFrame, useThree} from '@react-three/fiber';
 
 
@@ -31,6 +30,8 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	
 	const handleMouseDown = LeRed.useCallback((event) =>
 	{
+		event.stopPropagation?.();
+		event.preventDefault?.();
 		if(event.touches)
 		{
 			if(event.touches.length > 1)
@@ -94,6 +95,8 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	
 	const handleMouseScroll = LeRed.useCallback((event) =>
 	{
+		event.stopPropagation?.();
+		event.preventDefault?.();
 		cameraFov.current = clampFov(cameraFov.current + (FLOAT_LAX_ANY(event.deltaY, 0) * FOV_SCROLL_SPEED));
 	}, []);
 	
@@ -123,14 +126,11 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 			onCameraRotationChanged?.(LeUtils.clone(cameraRotation.current));
 		}
 		
-		if(camera instanceof PerspectiveCamera)
+		if((typeof camera.fov !== 'undefined') && (cameraFov.current !== camera.fov))
 		{
-			if(cameraFov.current !== camera.fov)
-			{
-				camera.fov = FLOAT_LAX_ANY(cameraFov.current, 90);
-				camera.updateProjectionMatrix();
-				onFovChanged?.(cameraFov.current);
-			}
+			camera.fov = FLOAT_LAX_ANY(cameraFov.current, 90);
+			camera.updateProjectionMatrix();
+			onFovChanged?.(cameraFov.current);
 		}
 	});
 	
@@ -143,11 +143,12 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 		document.addEventListener('mousemove', handleMouseMove);
 		document.addEventListener('mouseup', handleMouseUp);
 		//domElement.addEventListener('mouseleave', handleMouseUp); // stop dragging if the mouse leaves the canvas
-		document.addEventListener('touchstart', handleMouseDown);
+		domElement.addEventListener('touchstart', handleMouseDown);
 		document.addEventListener('touchmove', handleMouseMove);
 		document.addEventListener('touchend', handleMouseUp);
 		document.addEventListener('touchcancel', handleMouseUp);
-		document.addEventListener('wheel', handleMouseScroll);
+		domElement.addEventListener('wheel', handleMouseScroll);
+		domElement.addEventListener('pinch', handleMouseScroll);
 		
 		return () =>
 		{
@@ -155,11 +156,12 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 			document.removeEventListener('mousemove', handleMouseMove);
 			document.removeEventListener('mouseup', handleMouseUp);
 			//domElement.removeEventListener('mouseleave', handleMouseUp);
-			document.removeEventListener('touchstart', handleMouseDown);
+			domElement.removeEventListener('touchstart', handleMouseDown);
 			document.removeEventListener('touchmove', handleMouseMove);
 			document.removeEventListener('touchend', handleMouseUp);
 			document.removeEventListener('touchcancel', handleMouseUp);
-			document.removeEventListener('wheel', handleMouseScroll);
+			domElement.removeEventListener('wheel', handleMouseScroll);
+			domElement.removeEventListener('pinch', handleMouseScroll);
 		};
 	}, [gl.domElement, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseScroll]);
 	
