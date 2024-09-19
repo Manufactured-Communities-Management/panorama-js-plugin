@@ -5,7 +5,7 @@ import {dispose, loadTextures} from '../utils/PanoramaRendererUtils.jsx';
 import {PanoramaSphereWithLoadTextures} from './PanoramaSphereWithLoadTextures.jsx';
 
 
-export const PanoramaSphereMultiRes = LeRed.memo(({radius, textures, maskTextures}) =>
+export const PanoramaSphereMultiRes = LeRed.memo(({radius, textures, maskTextures, basisTranscoderPath}) =>
 {
 	const {gl} = useThree();
 	const [level, setLevel] = LeRed.useState(0);
@@ -41,14 +41,14 @@ export const PanoramaSphereMultiRes = LeRed.memo(({radius, textures, maskTexture
 					return;
 				}
 				
-				newLoadedTextures = await loadTextures(gl, textures[level]);
+				newLoadedTextures = await loadTextures(gl, textures[level], basisTranscoderPath);
 				if(cancel)
 				{
 					dispose(newLoadedTextures, newLoadedMaskTextures);
 					return;
 				}
 				
-				newLoadedMaskTextures = !maskTextures ? null : await loadTextures(gl, maskTextures[level]);
+				newLoadedMaskTextures = !maskTextures ? null : await loadTextures(gl, maskTextures[level], basisTranscoderPath);
 				if(cancel)
 				{
 					dispose(newLoadedTextures, newLoadedMaskTextures);

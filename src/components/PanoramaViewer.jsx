@@ -3,7 +3,7 @@ import {STRING, STRING_ANY, FLOAT_LAX_ANY} from '@lowentry/utils';
 import {PanoramaLoaderVersionRetriever} from './loading/PanoramaLoaderVersionRetriever.jsx';
 
 
-export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, sceneVersion:givenSceneVersion = 'latest', skus = null, locationId = null, sceneHost:givenSceneHost = null, onError = null, errorWidget = null, loadingWidget = null, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, ...other}) =>
+export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, sceneVersion:givenSceneVersion = 'latest', skus = null, locationId = null, sceneHost:givenSceneHost = null, onError = null, errorWidget = null, loadingWidget = null, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, basisTranscoderPath:givenBasisTranscoderPath, ...other}) =>
 {
 	const sceneId = LeRed.useMemo(() => STRING(givenSceneId).replace(/[^a-z0-9_]+/g, ''), givenSceneId);
 	const sceneVersion = LeRed.useMemo(() => STRING(!givenSceneVersion ? 'latest' : givenSceneVersion).trim().toLowerCase(), givenSceneVersion);
@@ -12,6 +12,8 @@ export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, sceneVersion:gi
 	const minFov = Math.max(1, FLOAT_LAX_ANY(other.minFov, 10));
 	const maxFov = Math.min(179, FLOAT_LAX_ANY(other.maxFov, 130));
 	const initialFov = Math.max(minFov, Math.min(maxFov, FLOAT_LAX_ANY(other.initialFov, 95)));
+	
+	const basisTranscoderPath = STRING_ANY(givenBasisTranscoderPath, 'https://d11xh1fqz0z9k8.cloudfront.net/basis_transcoder/');
 	
 	
 	const getErrorWidget = LeRed.useCallback((error) =>
@@ -41,6 +43,6 @@ export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, sceneVersion:gi
 	}
 	
 	return (<>
-		<PanoramaLoaderVersionRetriever sceneId={sceneId} sceneVersion={sceneVersion} skus={skus} locationId={locationId} sceneHost={sceneHost} getErrorWidget={getErrorWidget} getLoadingWidget={getLoadingWidget} minFov={minFov} maxFov={maxFov} initialFov={initialFov} {...other}/>
+		<PanoramaLoaderVersionRetriever sceneId={sceneId} sceneVersion={sceneVersion} skus={skus} locationId={locationId} sceneHost={sceneHost} getErrorWidget={getErrorWidget} getLoadingWidget={getLoadingWidget} minFov={minFov} maxFov={maxFov} initialFov={initialFov} basisTranscoderPath={basisTranscoderPath} {...other}/>
 	</>);
 });

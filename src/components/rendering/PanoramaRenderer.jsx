@@ -7,7 +7,7 @@ import {PanoramaControls} from '../gameplay/PanoramaControls.jsx';
 import {PanoramaSphereMultiRes} from './PanoramaSphereMultiRes.jsx';
 
 
-export const PanoramaRenderer = LeRed.memo(({src, hotspots, minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged}) =>
+export const PanoramaRenderer = LeRed.memo(({src, hotspots, minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged, basisTranscoderPath}) =>
 {
 	return (
 		<div className="app-widget-panorama-renderer">
@@ -16,7 +16,7 @@ export const PanoramaRenderer = LeRed.memo(({src, hotspots, minFov, maxFov, init
 				<PanoramaControls minFov={minFov} maxFov={maxFov} initialFov={initialFov} onFovChanged={onFovChanged} initialCameraRotation={initialCameraRotation} onCameraRotationChanged={onCameraRotationChanged}/>
 				
 				{LeUtils.mapToArray(src, (item, index) => (
-					<PanoramaSphereMultiRes key={index} radius={1000 - (index * 5)} textures={getTexturePathsOfBasePath(item.basePath)} maskTextures={getTexturePathsOfBasePath(item.maskBasePath)}/>
+					<PanoramaSphereMultiRes key={index} radius={1000 - (index * 5)} textures={getTexturePathsOfBasePath(item.basePath)} maskTextures={getTexturePathsOfBasePath(item.maskBasePath)} basisTranscoderPath={basisTranscoderPath}/>
 				))}
 			</Canvas>
 		</div>
