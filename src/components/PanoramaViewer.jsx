@@ -3,6 +3,7 @@ import {LeRed} from '@lowentry/react-redux';
 import {LeUtils, STRING, STRING_ANY, FLOAT_LAX_ANY} from '@lowentry/utils';
 import {PanoramaLoaderVersionRetriever} from './loading/PanoramaLoaderVersionRetriever.jsx';
 import {PanoramaDefaultLoadingWidget} from './widgets/PanoramaDefaultLoadingWidget.jsx';
+import {PanoramaDefaultErrorWidget} from './widgets/PanoramaDefaultErrorWidget.jsx';
 
 
 export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, sceneVersion:givenSceneVersion = 'latest', skus = null, locationId = null, sceneHost:givenSceneHost = null, onError = null, errorWidget = null, loadingWidget = null, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, basisTranscoderPath:givenBasisTranscoderPath, ...other}) =>
@@ -34,7 +35,7 @@ export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, sceneVersion:gi
 		
 		console.error('[PanoramaViewer] Error: ', error);
 		onError?.(LeUtils.clone(error));
-		return errorWidget?.(LeUtils.clone(error));
+		return errorWidget?.(LeUtils.clone(error)) ?? (<PanoramaDefaultErrorWidget {...error}/>);
 	}, [onError, errorWidget, setAttemptId]);
 	
 	
