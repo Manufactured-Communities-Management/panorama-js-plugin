@@ -8,7 +8,7 @@ import {PanoramaControls} from '../gameplay/PanoramaControls.jsx';
 import {PanoramaSphereMultiRes} from './PanoramaSphereMultiRes.jsx';
 
 
-export const PanoramaRenderer = LeRed.memo(({src, minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged, basisTranscoderPath, lookSpeed, lookSpeedX, lookSpeedY, zoomSpeed}) =>
+export const PanoramaRenderer = LeRed.memo(({src, basisTranscoderPath, minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged, lookSpeed, lookSpeedX, lookSpeedY, zoomSpeed}) =>
 {
 	return (
 		<div style={{width:'100%', height:'100%', overflow:'hidden'}}>
