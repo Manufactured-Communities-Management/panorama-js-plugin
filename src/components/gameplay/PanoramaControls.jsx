@@ -4,13 +4,18 @@ import {MathUtils} from 'three';
 import {useFrame, useThree} from '@react-three/fiber';
 
 
-export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged}) =>
+export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged, lookSpeed:givenLookSpeed, lookSpeedX:givenLookSpeedX, lookSpeedY:givenLookSpeedY, zoomSpeed:givenZoomSpeed}) =>
 {
 	const ROTATION_SPEED = 0.0012;
 	const ROTATION_DRAG_WHEN_SLIDING = 0.05;
 	const ROTATION_DRAG_WHEN_DRAGGING = 0.3;
 	const FOV_SCROLL_SPEED = 0.05;
 	
+	
+	const lookSpeed = FLOAT_LAX_ANY(givenLookSpeed, 1);
+	const lookSpeedX = FLOAT_LAX_ANY(givenLookSpeedX, 1);
+	const lookSpeedY = FLOAT_LAX_ANY(givenLookSpeedY, 1);
+	const zoomSpeed = FLOAT_LAX_ANY(givenZoomSpeed, 1);
 	
 	const cameraMinFov = LeRed.useRef();
 	const cameraMaxFov = LeRed.useRef();
@@ -74,8 +79,8 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 		const deltaX = event.clientX - startMousePosition.current.x;
 		const deltaY = event.clientY - startMousePosition.current.y;
 		const newCameraRotation = {
-			yaw:  startCameraRotation.current.yaw + (deltaX * ROTATION_SPEED * cameraFovRotationSpeedMultiplier()),
-			pitch:MathUtils.clamp(startCameraRotation.current.pitch + (deltaY * ROTATION_SPEED * cameraFovRotationSpeedMultiplier()), -Math.PI / 2, Math.PI / 2),
+			yaw:  startCameraRotation.current.yaw + (deltaX * ROTATION_SPEED * lookSpeed * lookSpeedX * cameraFovRotationSpeedMultiplier()),
+			pitch:MathUtils.clamp(startCameraRotation.current.pitch + (deltaY * ROTATION_SPEED * lookSpeed * lookSpeedY * cameraFovRotationSpeedMultiplier()), -Math.PI / 2, Math.PI / 2),
 		};
 		cameraRotationSpeed.current = {
 			yaw:  newCameraRotation.yaw - cameraRotation.current.yaw,
@@ -97,7 +102,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	{
 		event.stopPropagation?.();
 		event.preventDefault?.();
-		cameraFov.current = clampFov(cameraFov.current + (FLOAT_LAX_ANY(event.deltaY, 0) * FOV_SCROLL_SPEED));
+		cameraFov.current = clampFov(cameraFov.current + (FLOAT_LAX_ANY(event.deltaY, 0) * FOV_SCROLL_SPEED * zoomSpeed));
 	}, []);
 	
 	

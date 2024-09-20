@@ -8,13 +8,13 @@ import {PanoramaControls} from '../gameplay/PanoramaControls.jsx';
 import {PanoramaSphereMultiRes} from './PanoramaSphereMultiRes.jsx';
 
 
-export const PanoramaRenderer = LeRed.memo(({src, hotspots, minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged, basisTranscoderPath}) =>
+export const PanoramaRenderer = LeRed.memo(({src, minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged, basisTranscoderPath, lookSpeed, lookSpeedX, lookSpeedY, zoomSpeed}) =>
 {
 	return (
 		<div style={{width:'100%', height:'100%', overflow:'hidden'}}>
 			<Canvas flat={true} linear={true}>
 				<PerspectiveCamera makeDefault position={[0, 0, 0]}/>
-				<PanoramaControls minFov={minFov} maxFov={maxFov} initialFov={initialFov} onFovChanged={onFovChanged} initialCameraRotation={initialCameraRotation} onCameraRotationChanged={onCameraRotationChanged}/>
+				<PanoramaControls minFov={minFov} maxFov={maxFov} initialFov={initialFov} onFovChanged={onFovChanged} initialCameraRotation={initialCameraRotation} onCameraRotationChanged={onCameraRotationChanged} lookSpeed={lookSpeed} lookSpeedX={lookSpeedX} lookSpeedY={lookSpeedY} zoomSpeed={zoomSpeed}/>
 				
 				{LeUtils.mapToArray(src, (item, index) => (
 					<PanoramaSphereMultiRes key={index} radius={1000 - (index * 5)} textures={getTexturePathsOfBasePath(item.basePath)} maskTextures={getTexturePathsOfBasePath(item.maskBasePath)} basisTranscoderPath={basisTranscoderPath}/>
