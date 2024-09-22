@@ -1,4 +1,4 @@
-import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils';
+import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils.jsx';
 import {LeUtils} from '@lowentry/utils';
 
 
