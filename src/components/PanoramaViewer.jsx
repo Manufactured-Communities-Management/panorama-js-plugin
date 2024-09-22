@@ -1,22 +1,16 @@
 import React from 'react';
 import {LeRed} from '@lowentry/react-redux';
-import {LeUtils, STRING, STRING_ANY, FLOAT_LAX_ANY} from '@lowentry/utils';
+import {LeUtils} from '@lowentry/utils';
 import {PanoramaLoaderVersionRetriever} from './loading/PanoramaLoaderVersionRetriever.jsx';
 import {PanoramaDefaultLoadingWidget} from './widgets/PanoramaDefaultLoadingWidget.jsx';
 import {PanoramaDefaultErrorWidget} from './widgets/PanoramaDefaultErrorWidget.jsx';
+import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils';
 
 
-export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, sceneVersion:givenSceneVersion = 'latest', skus = null, locationId = null, sceneHost:givenSceneHost = null, onError = null, errorWidget = null, loadingWidget = null, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, basisTranscoderPath:givenBasisTranscoderPath, ...other}) =>
+export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, sceneVersion:givenSceneVersion = 'latest', sceneHost:givenSceneHost = null, skus = null, locationId = null, onError = null, errorWidget = null, loadingWidget = null, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, basisTranscoderPath:givenBasisTranscoderPath, ...other}) =>
 {
-	const sceneId = LeRed.useMemo(() => STRING(givenSceneId).replace(/[^a-z0-9_]+/g, ''), givenSceneId);
-	const sceneVersion = LeRed.useMemo(() => STRING(!givenSceneVersion ? 'latest' : givenSceneVersion).trim().toLowerCase(), givenSceneVersion);
-	const sceneHost = STRING_ANY(givenSceneHost, 'https://d1i78mubvvqzk6.cloudfront.net');
-	
-	const minFov = Math.max(1, FLOAT_LAX_ANY(givenMinFov, 20));
-	const maxFov = Math.min(179, FLOAT_LAX_ANY(givenMaxFov, 130));
-	const initialFov = Math.max(minFov, Math.min(maxFov, FLOAT_LAX_ANY(givenInitialFov, 95)));
-	
-	const basisTranscoderPath = STRING_ANY(givenBasisTranscoderPath, 'https://d11xh1fqz0z9k8.cloudfront.net/basis_transcoder/');
+	const {sceneId, sceneVersion, sceneHost, basisTranscoderPath} = LeRed.useMemo(() => getCorrectedGivenProps({sceneId:givenSceneId, sceneVersion:givenSceneVersion, sceneHost:givenSceneHost, basisTranscoderPath:givenBasisTranscoderPath}), [givenSceneId, givenSceneVersion, givenSceneHost, givenBasisTranscoderPath]);
+	const {minFov, maxFov, initialFov} = LeRed.useMemo(() => getCorrectedGivenProps({minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov}), [givenMinFov, givenMaxFov, givenInitialFov]);
 	
 	const [attemptId, setAttemptId] = LeRed.useState(LeUtils.uniqueId());
 	
