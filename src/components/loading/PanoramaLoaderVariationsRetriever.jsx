@@ -2,25 +2,26 @@ import React from 'react';
 import {LeRed} from '@lowentry/react-redux';
 import {STRING} from '@lowentry/utils';
 import {PanoramaLoaderVariationsParser} from './PanoramaLoaderVariationsParser.jsx';
+import {useVariationJsonData} from '../utils/PanoramaVariationObtainingUtils.jsx';
 
 
-export const PanoramaLoaderVariationsRetriever = LeRed.memo(({variations:givenVariations = null, ...props}) =>
+export const PanoramaLoaderVariationsRetriever = LeRed.memo(({variations:givenVariations = null, sceneVersion:givenSceneVersion, ...props}) =>
 {
-	const {sceneId, sceneHost, sceneUrl, getErrorWidget, getLoadingWidget} = props;
+	const {sceneId, sceneHost, getErrorWidget, getLoadingWidget} = props;
 	
-	const [variations, variationsLoading, variationsError] = LeRed.useExternalJson(sceneUrl + 'variations.json');
+	const [variations, variationsLoading, variationsError] = useVariationJsonData({sceneId, sceneVersion:givenSceneVersion, sceneHost});
 	
 	
-	if(!variationsLoading && !variations)
-	{
-		return getErrorWidget({canRetry:true, id:'could-not-connect-to-scene', message:'Couldn\'t connect to scene: ' + sceneId, reason:STRING(variationsError), data:{sceneId, sceneHost, sceneUrl}});
-	}
 	if(variationsLoading)
 	{
 		return getLoadingWidget();
 	}
+	if(!variations?.version || !variations?.url || !variations?.data)
+	{
+		return getErrorWidget({canRetry:true, id:'could-not-connect-to-scene', message:'Couldn\'t connect to scene: ' + sceneId, reason:STRING(variationsError), data:{sceneId, sceneVersion:givenSceneVersion, sceneHost}});
+	}
 	
 	return (<>
-		<PanoramaLoaderVariationsParser variations={variations} {...props}/>
+		<PanoramaLoaderVariationsParser sceneVersion={STRING(variations.version)} sceneUrl={STRING(variations.url)} variations={variations.data} {...props}/>
 	</>);
 });

@@ -32,8 +32,10 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	const startMousePosition = LeRed.useRef({x:0, y:0});
 	const startCameraRotation = LeRed.useRef({yaw:FLOAT_LAX_ANY(initialCameraRotation?.yaw, 0), pitch:FLOAT_LAX_ANY(initialCameraRotation?.pitch, 0)});
 	const cameraRotation = LeRed.useRef(LeUtils.clone(startCameraRotation.current));
+	const lastCameraRotationCallbackParams = LeRed.useRef();
 	const cameraRotationSpeed = LeRed.useRef({yaw:0, pitch:0});
 	const cameraFov = LeRed.useRef(clampFov(initialFov));
+	const lastCameraFovCallbackParams = LeRed.useRef();
 	const cameraFovRotationSpeedMultiplier = () => (cameraFov.current / 90);
 	
 	
@@ -132,14 +134,26 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 			camera.rotation.order = 'YXZ'; // yaw first, then pitch
 			camera.rotation.y = cameraRotation.current.yaw;
 			camera.rotation.x = cameraRotation.current.pitch;
-			onCameraRotationChanged?.(LeUtils.clone(cameraRotation.current));
+			
+			const roundedRotation = {yaw:Math.round(cameraRotation.current.yaw * 1000) / 1000, pitch:Math.round(cameraRotation.current.pitch * 1000) / 1000};
+			if(!LeUtils.equals(lastCameraRotationCallbackParams.current, roundedRotation))
+			{
+				lastCameraRotationCallbackParams.current = roundedRotation;
+				onCameraRotationChanged?.(LeUtils.clone(roundedRotation));
+			}
 		}
 		
 		if((typeof camera.fov !== 'undefined') && (cameraFov.current !== camera.fov))
 		{
 			camera.fov = FLOAT_LAX_ANY(cameraFov.current, 90);
 			camera.updateProjectionMatrix();
-			onFovChanged?.(cameraFov.current);
+			
+			const roundedFov = Math.round(cameraFov.current * 10) / 10;
+			if(!LeUtils.equals(lastCameraFovCallbackParams.current, roundedFov))
+			{
+				lastCameraFovCallbackParams.current = roundedFov;
+				onFovChanged?.(roundedFov);
+			}
 		}
 	});
 	

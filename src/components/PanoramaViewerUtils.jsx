@@ -1,32 +1,145 @@
-import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils.jsx';
-import {LeUtils} from '@lowentry/utils';
+import {LeRed} from '@lowentry/react-redux';
+import {LeUtils, ISSET} from '@lowentry/utils';
+import {getVariationJsonData} from './utils/PanoramaVariationObtainingUtils.jsx';
 
 
-const getVariationJsonData = async ({sceneId:givenSceneId, sceneVersion:givenSceneVersion = 'latest', sceneHost:givenSceneHost = null}) =>
+/**
+ * Returns an object with variation group IDs as keys, and arrays of SKUs as values.
+ *
+ * @param {Object} props
+ * @param {string} props.sceneId
+ * @param {string|null} [props.sceneVersion]
+ * @param {string|null} [props.sceneHost]
+ * @param {string|null} [props.locationId]
+ * @returns {Promise<{}>}
+ */
+export const getAvailableSkusGrouped = async ({sceneId, sceneVersion = 'latest', sceneHost = null, locationId = null}) =>
 {
-	let {sceneId, sceneVersion, sceneHost} = getCorrectedGivenProps({sceneId:givenSceneId, sceneVersion:givenSceneVersion, sceneHost:givenSceneHost});
+	const {data:variationData} = await getVariationJsonData({sceneId, sceneVersion, sceneHost});
 	
-	if(sceneVersion === 'latest')
+	let onlyVariationGroupIds = null;
+	if(ISSET(locationId))
 	{
-		const latestData = await (await LeUtils.fetch(sceneHost + '/' + sceneId + '/latest.json', {retries:3}))?.json?.();
-		if(!latestData || !latestData?.version)
+		onlyVariationGroupIds = {};
+		LeUtils.each(variationData?.locations, location =>
 		{
-			throw new Error('Couldn\'t connect to scene: ' + sceneId);
-		}
-		sceneVersion = latestData.version;
+			if(location?.locationId === locationId)
+			{
+				LeUtils.each(location.variationGroups, variationGroup =>
+				{
+					if(variationGroup?.groupId)
+					{
+						onlyVariationGroupIds[variationGroup.groupId] = true;
+					}
+					LeUtils.each(variationGroup?.layerDependencyGroupIds, layerDependencyGroupId =>
+					{
+						if(layerDependencyGroupId)
+						{
+							onlyVariationGroupIds[layerDependencyGroupId] = true;
+						}
+					});
+				});
+			}
+		});
 	}
 	
-	const variationData = await (await LeUtils.fetch(sceneHost + '/' + sceneId + '/' + sceneVersion + '/variations.json', {retries:3}))?.json?.();
-	if(!variationData)
+	const result = {};
+	LeUtils.each(variationData?.variationGroups, variationGroup =>
 	{
-		throw new Error('Couldn\'t connect to scene: ' + sceneId);
-	}
-	return variationData;
+		if((onlyVariationGroupIds === null) || (variationGroup?.groupId in onlyVariationGroupIds))
+		{
+			const variationSkus = [];
+			LeUtils.each(variationGroup?.variations, variation =>
+			{
+				if(variation?.sku)
+				{
+					variationSkus.push(variation?.sku);
+				}
+			});
+			result[variationGroup.groupId] = variationSkus;
+		}
+	});
+	return result;
+};
+
+/**
+ * Returns an object with variation group IDs as keys, and arrays of SKUs as values.
+ *
+ * @param {Object} props
+ * @param {string} props.sceneId
+ * @param {string|null} [props.sceneVersion]
+ * @param {string|null} [props.sceneHost]
+ * @param {string|null} [props.locationId]
+ * @returns [{}|null, boolean, string|null]
+ */
+export const useAvailableSkusGrouped = ({sceneId, sceneVersion = 'latest', sceneHost = null, locationId = null}) =>
+{
+	return LeRed.usePromises(() => getAvailableSkusGrouped({sceneId, sceneVersion, sceneHost, locationId}), [sceneId, sceneVersion, sceneHost, locationId]);
 };
 
 
-export const getAvailableSkus = async ({sceneId, sceneVersion = 'latest', sceneHost = null}) =>
+/**
+ * Returns an array of SKUs.
+ *
+ * @param {Object} props
+ * @param {string} props.sceneId
+ * @param {string|null} [props.sceneVersion]
+ * @param {string|null} [props.sceneHost]
+ * @param {string|null} [props.locationId]
+ * @returns {Promise<string[]>}
+ */
+export const getAvailableSkus = async ({sceneId, sceneVersion = 'latest', sceneHost = null, locationId = null}) =>
 {
-	const variationData = await getVariationJsonData({sceneId, sceneVersion, sceneHost});
-	console.log('variationData', variationData);
+	const skusGrouped = await getAvailableSkusGrouped({sceneId, sceneVersion, sceneHost, locationId});
+	const result = [];
+	LeUtils.each(skusGrouped, skus =>
+	{
+		result.push(...skus);
+	});
+	return result;
+};
+
+/**
+ * Returns an array of SKUs.
+ *
+ * @param {Object} props
+ * @param {string} props.sceneId
+ * @param {string|null} [props.sceneVersion]
+ * @param {string|null} [props.sceneHost]
+ * @param {string|null} [props.locationId]
+ * @returns [string[]|null, boolean, string|null]
+ */
+export const useAvailableSkus = ({sceneId, sceneVersion = 'latest', sceneHost = null, locationId = null}) =>
+{
+	return LeRed.usePromises(() => getAvailableSkus({sceneId, sceneVersion, sceneHost, locationId}), [sceneId, sceneVersion, sceneHost, locationId]);
+};
+
+
+/**
+ * Returns an array of location IDs.
+ *
+ * @param {Object} props
+ * @param {string} props.sceneId
+ * @param {string|null} [props.sceneVersion]
+ * @param {string|null} [props.sceneHost]
+ * @returns {Promise<string[]>}
+ */
+export const getAvailableLocationIds = async ({sceneId, sceneVersion = 'latest', sceneHost = null}) =>
+{
+	const {data:variationData} = await getVariationJsonData({sceneId, sceneVersion, sceneHost});
+	return LeUtils.filter(LeUtils.mapToArray(variationData?.locations, location => location.locationId), locationId => !!locationId);
+};
+
+/**
+ * Returns an array of location IDs.
+ *
+ * @param {Object} props
+ * @param {string} props.sceneId
+ * @param {string|null} [props.sceneVersion]
+ * @param {string|null} [props.sceneHost]
+ * @returns [string[]|null, boolean, string|null]
+ */
+export const useAvailableLocationIds = ({sceneId, sceneVersion = 'latest', sceneHost = null}) =>
+{
+	return LeRed.usePromises(() => getAvailableLocationIds({sceneId, sceneVersion, sceneHost}), [sceneId, sceneVersion, sceneHost]);
 };

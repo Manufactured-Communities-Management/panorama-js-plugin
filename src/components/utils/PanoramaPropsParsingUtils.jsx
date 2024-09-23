@@ -10,7 +10,7 @@ export const getCorrectedGivenProps = (props) =>
 		switch(key)
 		{
 			case 'sceneId':
-				newValue = STRING(value).replace(/[^a-z0-9_]+/g, '');
+				newValue = STRING(value).replace(/[^a-zA-Z0-9_]+/g, '');
 				break;
 			case 'sceneVersion':
 				newValue = STRING(!value ? 'latest' : value).trim().toLowerCase();

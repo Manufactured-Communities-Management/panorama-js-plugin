@@ -1,12 +1,39 @@
 import React from 'react';
 import {LeRed} from '@lowentry/react-redux';
 import {LeUtils} from '@lowentry/utils';
-import {PanoramaLoaderVersionRetriever} from './loading/PanoramaLoaderVersionRetriever.jsx';
 import {PanoramaDefaultLoadingWidget} from './widgets/PanoramaDefaultLoadingWidget.jsx';
 import {PanoramaDefaultErrorWidget} from './widgets/PanoramaDefaultErrorWidget.jsx';
+import {PanoramaLoaderVariationsRetriever} from './loading/PanoramaLoaderVariationsRetriever.jsx';
 import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils.jsx';
 
 
+/**
+ * The PanoramaViewer component is the main component for rendering a panorama scene.
+ *
+ * @param {Object} props
+ * @param {string} props.sceneId
+ * @param {string|null} [props.sceneVersion]
+ * @param {string|null} [props.sceneHost]
+ * @param {string[]|null} [props.skus]
+ * @param {string|null} [props.locationId]
+ * @param {Function|null} [props.onError]
+ * @param {Function|null} [props.errorWidget]
+ * @param {Function|null} [props.loadingWidget]
+ * @param {number|null} [props.minFov]
+ * @param {number|null} [props.maxFov]
+ * @param {number|null} [props.initialFov]
+ * @param {string|null} [props.basisTranscoderPath]
+ *
+ * @param {Function|null} [props.onFovChanged]
+ * @param {number|null} [props.initialCameraRotation]
+ * @param {Function|null} [props.onCameraRotationChanged]
+ * @param {number|null} [props.lookSpeed]
+ * @param {number|null} [props.lookSpeedX]
+ * @param {number|null} [props.lookSpeedY]
+ * @param {number|null} [props.zoomSpeed]
+ *
+ * @returns {JSX.Element}
+ */
 export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, sceneVersion:givenSceneVersion = 'latest', sceneHost:givenSceneHost = null, skus = null, locationId = null, onError = null, errorWidget = null, loadingWidget = null, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, basisTranscoderPath:givenBasisTranscoderPath, ...other}) =>
 {
 	const {sceneId, sceneVersion, sceneHost, basisTranscoderPath} = LeRed.useMemo(() => getCorrectedGivenProps({sceneId:givenSceneId, sceneVersion:givenSceneVersion, sceneHost:givenSceneHost, basisTranscoderPath:givenBasisTranscoderPath}), [givenSceneId, givenSceneVersion, givenSceneHost, givenBasisTranscoderPath]);
@@ -58,6 +85,6 @@ export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, sceneVersion:gi
 	}
 	
 	return (<>
-		<PanoramaLoaderVersionRetriever sceneId={sceneId} sceneVersion={sceneVersion} skus={skus} locationId={locationId} sceneHost={sceneHost} getErrorWidget={getErrorWidget} getLoadingWidget={getLoadingWidget} minFov={minFov} maxFov={maxFov} initialFov={initialFov} basisTranscoderPath={basisTranscoderPath} {...other}/>
+		<PanoramaLoaderVariationsRetriever sceneId={sceneId} sceneVersion={sceneVersion} skus={skus} locationId={locationId} sceneHost={sceneHost} getErrorWidget={getErrorWidget} getLoadingWidget={getLoadingWidget} minFov={minFov} maxFov={maxFov} initialFov={initialFov} basisTranscoderPath={basisTranscoderPath} {...other}/>
 	</>);
 });
