@@ -1,12 +1,15 @@
 import React from 'react';
 import {LeRed} from '@lowentry/react-redux';
+import {FLOAT_LAX_ANY} from '@lowentry/utils';
 import {SphereGeometry} from 'three';
 import {useThree} from '@react-three/fiber';
 import {createCubeMaterial, createCubeTexture, dispose} from '../utils/PanoramaRendererUtils.jsx';
 
 
-export const PanoramaSphereWithLoadTextures = LeRed.memo(({radius, textures, maskTextures}) =>
+export const PanoramaSphereWithLoadTextures = LeRed.memo(({renderOrder, radius, textures, maskTextures, opacity:givenOpacity}) =>
 {
+	const opacity = FLOAT_LAX_ANY(givenOpacity, 1);
+	
 	const {gl} = useThree();
 	const [sphereMaterial, setSphereMaterial] = LeRed.useState(null);
 	const [sphereMaterialProps, setSphereMaterialProps] = LeRed.useState({visible:false});
@@ -34,14 +37,14 @@ export const PanoramaSphereWithLoadTextures = LeRed.memo(({radius, textures, mas
 		{
 			if(textures.length === 1)
 			{
-				setSphereMaterialProps({visible:true, transparent:!!maskTextures, map:textures[0], alphaMap:(!maskTextures ? null : maskTextures[0])});
+				setSphereMaterialProps({visible:true, transparent:true /*!!maskTextures*/, map:textures[0], alphaMap:(!maskTextures ? null : maskTextures[0])});
 				return;
 			}
 			
 			cubeTexture = createCubeTexture(textures);
 			if(!maskTextures)
 			{
-				setSphereMaterialProps({visible:true, transparent:false, envMap:cubeTexture});
+				setSphereMaterialProps({visible:true, transparent:true /*false*/, envMap:cubeTexture});
 				return;
 			}
 			
@@ -63,9 +66,9 @@ export const PanoramaSphereWithLoadTextures = LeRed.memo(({radius, textures, mas
 	
 	
 	return (
-		<mesh geometry={geometry}>
-			{!!sphereMaterial && (<primitive object={sphereMaterial}/>)}
-			{!sphereMaterial && (<meshBasicMaterial {...sphereMaterialProps}/>)}
+		<mesh geometry={geometry} renderOrder={renderOrder}>
+			{!!sphereMaterial && (<primitive object={sphereMaterial} opacity={opacity}/>)}
+			{!sphereMaterial && (<meshBasicMaterial {...sphereMaterialProps} opacity={opacity}/>)}
 		</mesh>
 	);
 });
