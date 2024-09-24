@@ -108,12 +108,15 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 	
 	let result = [];
 	let variationIndexesForLocation = [];
+	let locationVariationIndexIndexed = {};
 	let locationVariationGroupsIndexed = {};
 	
 	/** add full render **/
 	LeUtils.each(variationGroups, (group, groupIndex) =>
 	{
-		const locationVariationGroup = locationVariationGroups?.[getVariationGroupIndexByGroupId(locationVariationGroups, group?.groupId)];
+		const locationVariationIndex = getVariationGroupIndexByGroupId(locationVariationGroups, group?.groupId);
+		const locationVariationGroup = locationVariationGroups?.[locationVariationIndex];
+		locationVariationIndexIndexed[group?.groupId] = locationVariationIndex;
 		locationVariationGroupsIndexed[group?.groupId] = locationVariationGroup;
 		if(locationVariationGroup && !locationVariationGroup?.layer)
 		{
@@ -124,11 +127,12 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 			variationIndexesForLocation.push(0);
 		}
 	});
-	result.push({basePath:sceneUrl + 'img_' + locationIndex + '_' + variationIndexesForLocation.join('_')});
+	result.push({locationIndex, layerRenderOrder:0, basePath:sceneUrl + 'img_' + locationIndex + '_' + variationIndexesForLocation.join('_')});
 	
 	/** add layers **/
 	LeUtils.each(variationGroups, (layerGroup, layerGroupIndex) =>
 	{
+		const locationVariationIndex = locationVariationIndexIndexed[layerGroup?.groupId];
 		const locationVariationGroup = locationVariationGroupsIndexed[layerGroup?.groupId];
 		if(!locationVariationGroup || !locationVariationGroup?.layer)
 		{
@@ -148,7 +152,7 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 		});
 		const colorPath = 'img_' + locationIndex + '_' + layerGroupIndex + 'c_' + variationIndexesForLocation.join('_');
 		const maskPath = 'img_' + locationIndex + '_' + layerGroupIndex + 'm_' + variationIndexesForLocation.join('_');
-		result.push({basePath:sceneUrl + colorPath, maskBasePath:sceneUrl + maskPath});
+		result.push({locationIndex, layerRenderOrder:(locationVariationIndex + 1), basePath:sceneUrl + colorPath, maskBasePath:sceneUrl + maskPath});
 	});
 	
 	return result;

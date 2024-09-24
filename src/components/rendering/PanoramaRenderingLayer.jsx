@@ -5,13 +5,13 @@ import {PanoramaSphereMultiRes} from './PanoramaSphereMultiRes.jsx';
 import {getTexturePathsOfBasePath} from '../utils/PanoramaRendererUtils.jsx';
 
 
-const FADEOUT_DELAY_MS = 400;
-const FADEOUT_DURATION_MS = 2000;
+export const FADEOUT_DELAY_MS = 200;
+export const FADEOUT_DURATION_MS = 800;
 const FADEOUT_DURATION_DECAY_FACTOR = Math.pow(0.01, 1 / (FADEOUT_DURATION_MS / 1000));
-const FADEOUT_DURATION_LINEAR = true;
+const FADEOUT_DURATION_LINEAR = false;
 
 
-export const PanoramaLayers = LeRed.memo(({src, layerRenderOrder, visible, basisTranscoderPath}) =>
+export const PanoramaRenderingLayer = LeRed.memo(({src, visible, layerRenderOrder, basisTranscoderPath}) =>
 {
 	const opacityRef = LeRed.useRef(1);
 	const [opacity, setOpacity] = LeRed.useState(1);
@@ -36,7 +36,7 @@ export const PanoramaLayers = LeRed.memo(({src, layerRenderOrder, visible, basis
 			}
 			catch(e)
 			{
-				console.error('[PanoramaViewer] PanoramaLayers fadeout timer removal failed:', e);
+				console.error('[PanoramaViewer] PanoramaRenderingLayer fadeout timer removal failed:', e);
 			}
 		};
 		
@@ -71,8 +71,6 @@ export const PanoramaLayers = LeRed.memo(({src, layerRenderOrder, visible, basis
 	
 	
 	return (<>
-		{LeUtils.mapToArray(src, (item, index) => (
-			<PanoramaSphereMultiRes key={index} renderOrder={(layerRenderOrder * 100) + index} opacity={opacity} radius={1000} textures={getTexturePathsOfBasePath(item.basePath)} maskTextures={getTexturePathsOfBasePath(item.maskBasePath)} basisTranscoderPath={basisTranscoderPath}/>
-		))}
+		<PanoramaSphereMultiRes renderOrder={layerRenderOrder} opacity={opacity} radius={1000} textures={getTexturePathsOfBasePath(src.basePath)} maskTextures={getTexturePathsOfBasePath(src.maskBasePath)} basisTranscoderPath={basisTranscoderPath}/>
 	</>);
 });

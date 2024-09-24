@@ -5,7 +5,7 @@ import {getLocationIndexByLocationId, getSelectedVariationIndexesBySku, getTextu
 import {PanoramaLoaderInitialTextureDownloader} from './PanoramaLoaderInitialTextureDownloader.jsx';
 
 
-export const PanoramaLoaderVariationsParser = ({src = null, ...props}) =>
+export const PanoramaLoaderVariationsParser = ({src = null, locationIndex:givenLocationIndex = null, ...props}) =>
 {
 	const {variations, sceneId, skus, locationId, sceneHost, sceneUrl, getErrorWidget, getLoadingWidget} = props;
 	
@@ -33,6 +33,6 @@ export const PanoramaLoaderVariationsParser = ({src = null, ...props}) =>
 	
 	
 	return (<>
-		<PanoramaLoaderInitialTextureDownloader src={texturePathsToRender} {...props}/>
+		<PanoramaLoaderInitialTextureDownloader src={texturePathsToRender} locationIndex={locationIndex} {...props}/>
 	</>);
 };
