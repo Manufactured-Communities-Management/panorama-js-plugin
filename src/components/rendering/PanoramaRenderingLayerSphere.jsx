@@ -7,7 +7,7 @@ import {createCubeMaterial, createCubeTexture, dispose} from '../utils/PanoramaR
 
 
 const DEFAULT_OBJECT_PARAMS = {matrixAutoUpdate:false, receiveShadow:false, castShadow:false};
-const DEFAULT_MATERIAL_PARAMS = {visible:false, transparent:true, depthTest:false, depthWrite:false};
+const DEFAULT_MATERIAL_PARAMS = {visible:false, transparent:true, depthTest:false, depthWrite:false, stencilWrite:false};
 
 
 export const PanoramaRenderingLayerSphere = LeRed.memo(({renderOrder, radius, textures, maskTextures, opacity:givenOpacity}) =>
