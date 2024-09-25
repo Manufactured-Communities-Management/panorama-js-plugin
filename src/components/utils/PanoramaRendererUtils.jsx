@@ -1,3 +1,4 @@
+import {LeUtils, ISSET} from '@lowentry/utils';
 import {KTX2Loader} from 'three-stdlib';
 import {CompressedCubeTexture, CubeTexture, LinearFilter, LinearSRGBColorSpace, MeshBasicMaterial, TextureLoader, UnsignedByteType} from 'three';
 
@@ -29,7 +30,7 @@ export const loadTextures = (() =>
 	let ktx2Loader = null;
 	let textureLoader = null;
 	
-	return async (gl, textures, basisTranscoderPath) =>
+	return async ({gl, textures, basisTranscoderPath}) =>
 	{
 		if(typeof textures[0] !== 'string')
 		{
@@ -138,7 +139,7 @@ export const createCubeMaterial = ({maskEnvMap, ...props}) =>
 };
 
 
-export const getTexturePathsOfBasePath = (basePath, type = 'ktx2') =>
+export const getTexturePathsOfBasePath = ({basePath, type = 'ktx2'}) =>
 {
 	if(!basePath)
 	{
@@ -157,4 +158,170 @@ export const getTexturePathsOfBasePath = (basePath, type = 'ktx2') =>
 			basePath + '/1b.' + type, // back
 		],
 	];
+};
+
+
+export const loadMultiresTexture = ({gl, basePath, maskBasePath, type = 'ktx2', basisTranscoderPath, minimumLoadTime = 0, onLoadingLevelDone = null, onLoadingLevelFail = null}) =>
+{
+	const textures = getTexturePathsOfBasePath({basePath, type});
+	const maskTextures = getTexturePathsOfBasePath({basePath:maskBasePath, type});
+	if(!gl || !textures)
+	{
+		return;
+	}
+	
+	let listeners = [];
+	
+	let allLoadTextures = [];
+	
+	let lastLoadedLevel = -1;
+	let lastLoadedTextures = null;
+	let lastLoadedMaskTextures = null;
+	
+	let cancel = false;
+	let newLoadedTextures = null;
+	let newLoadedMaskTextures = null;
+	
+	const removeListener = (key) =>
+	{
+		listeners = listeners.filter(listener => (listener.key !== key));
+	};
+	
+	const addListener = ({onDone, onFail}) =>
+	{
+		const key = LeUtils.uniqueId();
+		listeners.push({key, onDone, onFail});
+		if(lastLoadedTextures)
+		{
+			try
+			{
+				onDone?.({level:lastLoadedLevel, textures:lastLoadedTextures, maskTextures:lastLoadedMaskTextures});
+			}
+			catch(e)
+			{
+				console.error('[PanoramaViewer] loadMultiresTexture listener.onDone failed:', e);
+			}
+		}
+		return {remove:() => removeListener(key)};
+	};
+	
+	const disposeLoadTextures = () =>
+	{
+		cancel = true;
+		
+		(async () =>
+		{
+			dispose(...allLoadTextures);
+			allLoadTextures = [];
+			lastLoadedTextures = null;
+			lastLoadedMaskTextures = null;
+			
+			dispose(await newLoadedTextures, await newLoadedMaskTextures);
+			newLoadedTextures = null;
+			newLoadedMaskTextures = null;
+			
+			dispose(...allLoadTextures);
+			allLoadTextures = [];
+			lastLoadedTextures = null;
+			lastLoadedMaskTextures = null;
+		})();
+	};
+	
+	const loadLevel = (async (level, attempt = 1) =>
+	{
+		try
+		{
+			if(!ISSET(textures[level]))
+			{
+				// no more levels
+				return;
+			}
+			
+			newLoadedTextures = loadTextures({gl, textures:textures[level], basisTranscoderPath});
+			newLoadedMaskTextures = !maskTextures ? null : loadTextures({gl, textures:maskTextures[level], basisTranscoderPath});
+			
+			newLoadedTextures = await newLoadedTextures;
+			newLoadedMaskTextures = await newLoadedMaskTextures;
+			if(cancel)
+			{
+				dispose(newLoadedTextures, newLoadedMaskTextures);
+				return;
+			}
+			
+			allLoadTextures.push(newLoadedTextures);
+			allLoadTextures.push(newLoadedMaskTextures);
+			
+			lastLoadedLevel = level;
+			lastLoadedTextures = newLoadedTextures;
+			lastLoadedMaskTextures = newLoadedMaskTextures;
+			try
+			{
+				await onLoadingLevelDone?.({level, textures:newLoadedTextures, maskTextures:newLoadedMaskTextures});
+			}
+			catch(e)
+			{
+				console.error('[PanoramaViewer] loadMultiresTexture onLoadingLevelDone failed:', e);
+			}
+			LeUtils.each(listeners, listener =>
+			{
+				try
+				{
+					listener?.onDone?.({level:lastLoadedLevel, textures:lastLoadedTextures, maskTextures:lastLoadedMaskTextures});
+				}
+				catch(e)
+				{
+					console.error('[PanoramaViewer] loadMultiresTexture listener.onDone failed:', e);
+				}
+			});
+			await loadLevel(level + 1);
+		}
+		catch(e)
+		{
+			if(attempt <= 3)
+			{
+				await LeUtils.promiseTimeout(500);
+				await loadLevel(level, attempt + 1);
+				return;
+			}
+			cancel = true;
+			console.error('[PanoramaViewer] loadMultiresTexture texture loading failed:', e);
+			try
+			{
+				await onLoadingLevelFail?.({level, error:e});
+			}
+			catch(e)
+			{
+				console.error('[PanoramaViewer] loadMultiresTexture onLoadingLevelFail failed:', e);
+			}
+			LeUtils.each(listeners, listener =>
+			{
+				try
+				{
+					listener?.onFail?.({level:lastLoadedLevel, error:e});
+				}
+				catch(e)
+				{
+					console.error('[PanoramaViewer] loadMultiresTexture listener.onFail failed:', e);
+				}
+			});
+		}
+	});
+	// noinspection JSIgnoredPromiseFromCall
+	loadLevel(0);
+	
+	let minimumTimeWaited = (minimumLoadTime <= 0);
+	if(!minimumTimeWaited)
+	{
+		setTimeout(() =>
+		{
+			minimumTimeWaited = true;
+		}, minimumLoadTime);
+	}
+	
+	return {
+		loaderId:   LeUtils.uniqueId(),
+		dispose:    disposeLoadTextures,
+		isReady:    (minLevel = 0) => cancel || ((lastLoadedLevel >= minLevel) && minimumTimeWaited),
+		addListener:addListener,
+	};
 };

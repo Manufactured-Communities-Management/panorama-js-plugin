@@ -6,7 +6,7 @@ import {useThree} from '@react-three/fiber';
 import {createCubeMaterial, createCubeTexture, dispose} from '../utils/PanoramaRendererUtils.jsx';
 
 
-export const PanoramaSphereWithLoadTextures = LeRed.memo(({renderOrder, radius, textures, maskTextures, opacity:givenOpacity}) =>
+export const PanoramaRenderingLayerSphere = LeRed.memo(({renderOrder, radius, textures, maskTextures, opacity:givenOpacity}) =>
 {
 	const opacity = FLOAT_LAX_ANY(givenOpacity, 1);
 	
