@@ -7,7 +7,7 @@ import {loadMultiresTexture} from '../utils/PanoramaRendererUtils.jsx';
 import {PanoramaRenderingLayerMinimumLoadTime} from './PanoramaRenderingLayer.jsx';
 
 
-export const PanoramaRendererTexturePreloader = LeRed.memo(({src, sceneId, sceneHost, sceneUrl, locationIndex, basisTranscoderPath, getErrorWidget, getLoadingWidget}) =>
+export const PanoramaRendererTexturePreloader = LeRed.memo(({src, sceneId, sceneHost, sceneUrl, locationIndex, basisTranscoderPath, setError, setLoading}) =>
 {
 	const {gl} = useThree();
 	
@@ -16,8 +16,6 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, sceneId, scene
 	
 	const readyLayersRef = LeRed.useRef([]);
 	const [readyLayers, setReadyLayers] = LeRed.useState([]);
-	
-	const [textureLoadingError, setTextureLoadingError] = LeRed.useState(null);
 	
 	
 	LeRed.useEffect(() =>
@@ -64,7 +62,7 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, sceneId, scene
 			{
 				if(level <= 0)
 				{
-					setTextureLoadingError(error);
+					setError({canRetry:true, id:'could-not-load-scene', message:'Couldn\'t load the scene: ' + sceneId, reason:STRING(LeUtils.purgeErrorMessage(error)), data:{sceneId, sceneHost, sceneUrl}});
 				}
 			};
 			const loader = loadMultiresTexture({gl, basePath:item.basePath, maskBasePath:item.maskBasePath, basisTranscoderPath, minimumLoadTime:(readyLayersRef.current.length <= 0) ? 0 : PanoramaRenderingLayerMinimumLoadTime, onLoadingLevelFail:onLoadingError});
@@ -104,13 +102,15 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, sceneId, scene
 	}, [currentLayers]);
 	
 	
-	if(textureLoadingError)
+	LeRed.useEffect(() =>
 	{
-		return getErrorWidget({canRetry:true, id:'could-not-load-scene', message:'Couldn\'t load the scene: ' + sceneId, reason:STRING(LeUtils.purgeErrorMessage(textureLoadingError)), data:{sceneId, sceneHost, sceneUrl}});
-	}
+		setLoading((readyLayers.length <= 0));
+	}, [(readyLayers.length <= 0)]);
+	
+	
 	if(readyLayers.length <= 0)
 	{
-		return getLoadingWidget();
+		return;
 	}
 	
 	return (<>

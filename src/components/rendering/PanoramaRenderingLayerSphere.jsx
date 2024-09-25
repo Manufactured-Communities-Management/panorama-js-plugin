@@ -6,13 +6,17 @@ import {useThree} from '@react-three/fiber';
 import {createCubeMaterial, createCubeTexture, dispose} from '../utils/PanoramaRendererUtils.jsx';
 
 
+const DEFAULT_OBJECT_PARAMS = {matrixAutoUpdate:false, frustumCulled:false, receiveShadow:false, castShadow:false};
+const DEFAULT_MATERIAL_PARAMS = {visible:false, transparent:true, depthTest:false, depthWrite:false};
+
+
 export const PanoramaRenderingLayerSphere = LeRed.memo(({renderOrder, radius, textures, maskTextures, opacity:givenOpacity}) =>
 {
 	const opacity = FLOAT_LAX_ANY(givenOpacity, 1);
 	
 	const {gl} = useThree();
 	const [sphereMaterial, setSphereMaterial] = LeRed.useState(null);
-	const [sphereMaterialProps, setSphereMaterialProps] = LeRed.useState({visible:false});
+	const [sphereMaterialProps, setSphereMaterialProps] = LeRed.useState({});
 	
 	const geometry = LeRed.useMemo(() =>
 	{
@@ -26,7 +30,7 @@ export const PanoramaRenderingLayerSphere = LeRed.memo(({renderOrder, radius, te
 	{
 		if(!gl || !textures)
 		{
-			setSphereMaterialProps({visible:false});
+			setSphereMaterialProps({});
 			return;
 		}
 		
@@ -37,19 +41,19 @@ export const PanoramaRenderingLayerSphere = LeRed.memo(({renderOrder, radius, te
 		{
 			if(textures.length === 1)
 			{
-				setSphereMaterialProps({visible:true, transparent:true /*!!maskTextures*/, map:textures[0], alphaMap:(!maskTextures ? null : maskTextures[0])});
+				setSphereMaterialProps({visible:true, map:textures[0], alphaMap:(!maskTextures ? null : maskTextures[0])});
 				return;
 			}
 			
 			cubeTexture = createCubeTexture(textures);
 			if(!maskTextures)
 			{
-				setSphereMaterialProps({visible:true, transparent:true /*false*/, envMap:cubeTexture});
+				setSphereMaterialProps({visible:true, envMap:cubeTexture});
 				return;
 			}
 			
 			maskCubeTexture = !maskTextures ? null : createCubeTexture(maskTextures);
-			material = createCubeMaterial({visible:true, transparent:true, envMap:cubeTexture, maskEnvMap:maskCubeTexture});
+			material = createCubeMaterial({...DEFAULT_MATERIAL_PARAMS, visible:true, envMap:cubeTexture, maskEnvMap:maskCubeTexture});
 			setSphereMaterial(material);
 		}
 		catch(e)
@@ -66,9 +70,9 @@ export const PanoramaRenderingLayerSphere = LeRed.memo(({renderOrder, radius, te
 	
 	
 	return (
-		<mesh geometry={geometry} renderOrder={renderOrder}>
-			{!!sphereMaterial && (<primitive object={sphereMaterial} opacity={opacity}/>)}
-			{!sphereMaterial && (<meshBasicMaterial {...sphereMaterialProps} opacity={opacity}/>)}
+		<mesh {...DEFAULT_OBJECT_PARAMS} geometry={geometry} renderOrder={renderOrder}>
+			{!!sphereMaterial && (<primitive {...DEFAULT_MATERIAL_PARAMS} object={sphereMaterial} opacity={opacity}/>)}
+			{!sphereMaterial && (<meshBasicMaterial {...DEFAULT_MATERIAL_PARAMS} {...sphereMaterialProps} opacity={opacity}/>)}
 		</mesh>
 	);
 });

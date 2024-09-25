@@ -8,14 +8,24 @@ import {PanoramaRendererTexturePreloader} from './PanoramaRendererTexturePreload
 
 export const PanoramaRenderer = LeRed.memo(({src, sceneId, sceneHost, sceneUrl, locationIndex, basisTranscoderPath, minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged, lookSpeed, lookSpeedX, lookSpeedY, zoomSpeed, getErrorWidget, getLoadingWidget}) =>
 {
-	return (
-		<div style={{width:'100%', height:'100%', overflow:'hidden'}}>
-			<Canvas flat={true} linear={true}>
+	const [loading, setLoading] = LeRed.useState(true);
+	const [error, setError] = LeRed.useState(null);
+	
+	
+	if(error)
+	{
+		return getErrorWidget(error);
+	}
+	
+	return (<>
+		{!!loading && getLoadingWidget()}
+		<div style={{width:'100%', height:'100%', overflow:'hidden', ...(!loading ? {} : {width:'1px', height:'1px', opacity:'0'})}}>
+			<Canvas flat={true} linear={true} shadows={false}>
 				<PerspectiveCamera makeDefault position={[0, 0, 0]}/>
 				<PanoramaControls minFov={minFov} maxFov={maxFov} initialFov={initialFov} onFovChanged={onFovChanged} initialCameraRotation={initialCameraRotation} onCameraRotationChanged={onCameraRotationChanged} lookSpeed={lookSpeed} lookSpeedX={lookSpeedX} lookSpeedY={lookSpeedY} zoomSpeed={zoomSpeed}/>
 				
-				<PanoramaRendererTexturePreloader src={src} sceneId={sceneId} sceneHost={sceneHost} sceneUrl={sceneUrl} locationIndex={locationIndex} basisTranscoderPath={basisTranscoderPath} getErrorWidget={getErrorWidget} getLoadingWidget={getLoadingWidget}/>
+				<PanoramaRendererTexturePreloader src={src} sceneId={sceneId} sceneHost={sceneHost} sceneUrl={sceneUrl} locationIndex={locationIndex} basisTranscoderPath={basisTranscoderPath} setLoading={setLoading} setError={setError}/>
 			</Canvas>
 		</div>
-	);
+	</>);
 });

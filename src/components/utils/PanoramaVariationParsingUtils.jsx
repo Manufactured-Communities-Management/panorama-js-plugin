@@ -121,7 +121,7 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 			return;
 		}
 		const locationVariationGroup = locationVariationGroups?.[locationVariationIndex ?? ''];
-		if(!locationVariationGroup || !locationVariationGroup?.layer)
+		if(!locationVariationGroup || locationVariationGroup?.layer)
 		{
 			variationIndexesForLocation.push(0);
 			return;
