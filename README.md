@@ -45,7 +45,7 @@ For example code, see the [MCM Panorama Demo Frontend][panorama-frontend], the [
 
 To create panorama pictures, the following steps are taken:
 
-1. The UnrealEngine project is set up with the panorama plugin, and the render button is pressed.
+1. The UnrealEngine project is set up with the [MCM Panorama UnrealEngine plugin][panorama-ue-plugin], and the render button is pressed.
     - see the [MCM Panorama UnrealEngine plugin][panorama-ue-plugin] for more information on this
     - this will cause the raw panorama pictures (PNGs) to be rendered and saved to a folder
 2. The raw panorama pictures will then have to be processed by the Docker script, located at [`scripts/postprocessor/`](https://github.com/Manufactured-Communities-Management/panorama-js-plugin/tree/master/scripts/postprocessor).
