@@ -16,26 +16,27 @@ import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils.jsx';
  * @param {string|null} [props.sceneHost]
  * @param {string[]|null} [props.skus]
  * @param {string|null} [props.locationId]
- * @param {Function|null} [props.onError]
- * @param {Function|null} [props.errorWidget]
- * @param {Function|null} [props.loadingWidget]
+ * @param {((error:{canRetry:boolean, retry:()=>void, message:string, reason:string, id:string, data:Object})=>void)|null} [props.onError]
+ * @param {((error:{canRetry:boolean, retry:()=>void, message:string, reason:string, id:string, data:Object})=>JSX.Element)|null} [props.errorWidget]
+ * @param {(()=>JSX.Element)|null} [props.loadingWidget]
  * @param {number|null} [props.minFov]
  * @param {number|null} [props.maxFov]
  * @param {number|null} [props.initialFov]
  * @param {string|null} [props.basisTranscoderPath]
- *
- * @param {Function|null} [props.onFovChanged]
- * @param {number|null} [props.initialCameraRotation]
- * @param {Function|null} [props.onCameraRotationChanged]
+ * @param {((newFov:number)=>void)|null} [props.onFovChanged]
+ * @param {{yaw:number, pitch:number}|null} [props.initialCameraRotation]
+ * @param {((newRotation:{yaw:number, pitch:number})=>void)|null} [props.onCameraRotationChanged]
  * @param {number|null} [props.lookSpeed]
  * @param {number|null} [props.lookSpeedX]
  * @param {number|null} [props.lookSpeedY]
  * @param {number|null} [props.zoomSpeed]
  *
- * @returns {JSX.Element}
+ * @returns {React.ReactElement}
  */
-export const PanoramaViewer = LeRed.memo(({sceneId:givenSceneId, sceneVersion:givenSceneVersion = 'latest', sceneHost:givenSceneHost = null, skus = null, locationId = null, onError = null, errorWidget = null, loadingWidget = null, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, basisTranscoderPath:givenBasisTranscoderPath, ...other}) =>
+export const PanoramaViewer = LeRed.memo((props) =>
 {
+	const {sceneId:givenSceneId, sceneVersion:givenSceneVersion, sceneHost:givenSceneHost, skus, locationId, onError, errorWidget, loadingWidget, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, basisTranscoderPath:givenBasisTranscoderPath, ...other} = props;
+	
 	const {sceneId, sceneVersion, sceneHost, basisTranscoderPath} = LeRed.useMemo(() => getCorrectedGivenProps({sceneId:givenSceneId, sceneVersion:givenSceneVersion, sceneHost:givenSceneHost, basisTranscoderPath:givenBasisTranscoderPath}), [givenSceneId, givenSceneVersion, givenSceneHost, givenBasisTranscoderPath]);
 	const {minFov, maxFov, initialFov} = LeRed.useMemo(() => getCorrectedGivenProps({minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov}), [givenMinFov, givenMaxFov, givenInitialFov]);
 	

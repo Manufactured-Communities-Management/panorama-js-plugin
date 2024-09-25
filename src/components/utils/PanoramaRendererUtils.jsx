@@ -1,4 +1,4 @@
-import {LeUtils, ISSET} from '@lowentry/utils';
+import {LeUtils, ISSET, FLOAT_LAX} from '@lowentry/utils';
 import {KTX2Loader} from 'three-stdlib';
 import {CompressedCubeTexture, CubeTexture, LinearFilter, LinearSRGBColorSpace, MeshBasicMaterial, TextureLoader, UnsignedByteType} from 'three';
 
@@ -30,8 +30,10 @@ export const loadTextures = (() =>
 	let ktx2Loader = null;
 	let textureLoader = null;
 	
-	return async ({gl, textures, basisTranscoderPath}) =>
+	return async (params) =>
 	{
+		const {gl, textures, basisTranscoderPath} = params;
+		
 		if(typeof textures[0] !== 'string')
 		{
 			return textures;
@@ -100,8 +102,9 @@ export const createCubeTexture = (textures) =>
 };
 
 
-export const createCubeMaterial = ({maskEnvMap, ...props}) =>
+export const createCubeMaterial = (params) =>
 {
+	const {maskEnvMap, ...props} = params;
 	const material = new MeshBasicMaterial(props);
 	material.onBeforeCompile = (shader) =>
 	{
@@ -139,8 +142,9 @@ export const createCubeMaterial = ({maskEnvMap, ...props}) =>
 };
 
 
-export const getTexturePathsOfBasePath = ({basePath, type = 'ktx2'}) =>
+export const getTexturePathsOfBasePath = (params) =>
 {
+	const {basePath, type = 'ktx2'} = params;
 	if(!basePath)
 	{
 		return null;
@@ -161,8 +165,11 @@ export const getTexturePathsOfBasePath = ({basePath, type = 'ktx2'}) =>
 };
 
 
-export const loadMultiresTexture = ({gl, basePath, maskBasePath, type = 'ktx2', basisTranscoderPath, minimumLoadTime = 0, onLoadingLevelDone = null, onLoadingLevelFail = null}) =>
+export const loadMultiresTexture = (params) =>
 {
+	const {gl, basePath, maskBasePath, type, basisTranscoderPath, minimumLoadTime:givenMinimumLoadTime, onLoadingLevelDone, onLoadingLevelFail} = params;
+	const minimumLoadTime = FLOAT_LAX(givenMinimumLoadTime, 0);
+	
 	const textures = getTexturePathsOfBasePath({basePath, type});
 	const maskTextures = getTexturePathsOfBasePath({basePath:maskBasePath, type});
 	if(!gl || !textures)

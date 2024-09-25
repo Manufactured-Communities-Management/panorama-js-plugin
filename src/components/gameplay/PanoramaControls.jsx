@@ -143,7 +143,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 			}
 		}
 		
-		if((typeof camera.fov !== 'undefined') && (cameraFov.current !== camera.fov))
+		if(('fov' in camera) && (cameraFov.current !== camera.fov))
 		{
 			camera.fov = FLOAT_LAX_ANY(cameraFov.current, 90);
 			camera.updateProjectionMatrix();

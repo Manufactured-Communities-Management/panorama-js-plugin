@@ -5,7 +5,7 @@ import {PanoramaLoaderVariationsParser} from './PanoramaLoaderVariationsParser.j
 import {useVariationJsonData} from '../utils/PanoramaVariationObtainingUtils.jsx';
 
 
-export const PanoramaLoaderVariationsRetriever = LeRed.memo(({variations:givenVariations = null, sceneVersion:givenSceneVersion, ...props}) =>
+export const PanoramaLoaderVariationsRetriever = LeRed.memo(({variations:givenVariations = undefined, sceneVersion:givenSceneVersion, ...props}) =>
 {
 	const {sceneId, sceneHost, getErrorWidget, getLoadingWidget} = props;
 	

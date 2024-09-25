@@ -115,17 +115,20 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 	LeUtils.each(variationGroups, (group, groupIndex) =>
 	{
 		const locationVariationIndex = getVariationGroupIndexByGroupId(locationVariationGroups, group?.groupId);
-		const locationVariationGroup = locationVariationGroups?.[locationVariationIndex];
-		locationVariationIndexIndexed[group?.groupId] = locationVariationIndex;
-		locationVariationGroupsIndexed[group?.groupId] = locationVariationGroup;
-		if(locationVariationGroup && !locationVariationGroup?.layer)
-		{
-			variationIndexesForLocation.push(selectedVariationIndexes[groupIndex] ?? 0);
-		}
-		else
+		if(!ISSET(locationVariationIndex))
 		{
 			variationIndexesForLocation.push(0);
+			return;
 		}
+		const locationVariationGroup = locationVariationGroups?.[locationVariationIndex ?? ''];
+		if(!locationVariationGroup || !locationVariationGroup?.layer)
+		{
+			variationIndexesForLocation.push(0);
+			return;
+		}
+		locationVariationIndexIndexed[group?.groupId] = locationVariationIndex;
+		locationVariationGroupsIndexed[group?.groupId] = locationVariationGroup;
+		variationIndexesForLocation.push(selectedVariationIndexes[groupIndex] ?? 0);
 	});
 	result.push({locationIndex, layerRenderOrder:0, basePath:sceneUrl + 'img_' + locationIndex + '_' + variationIndexesForLocation.join('_')});
 	
@@ -134,7 +137,7 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 	{
 		const locationVariationIndex = locationVariationIndexIndexed[layerGroup?.groupId];
 		const locationVariationGroup = locationVariationGroupsIndexed[layerGroup?.groupId];
-		if(!locationVariationGroup || !locationVariationGroup?.layer)
+		if(!locationVariationGroup)
 		{
 			return;
 		}

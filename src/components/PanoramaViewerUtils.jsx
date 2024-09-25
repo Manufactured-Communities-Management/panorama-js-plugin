@@ -6,15 +6,16 @@ import {getVariationJsonData} from './utils/PanoramaVariationObtainingUtils.jsx'
 /**
  * Returns an object with variation group IDs as keys, and arrays of SKUs as values.
  *
- * @param {Object} props
- * @param {string} props.sceneId
- * @param {string|null} [props.sceneVersion]
- * @param {string|null} [props.sceneHost]
- * @param {string|null} [props.locationId]
- * @returns {Promise<{}>}
+ * @param {Object} params
+ * @param {string} params.sceneId
+ * @param {string|null} [params.sceneVersion]
+ * @param {string|null} [params.sceneHost]
+ * @param {string|null} [params.locationId]
+ * @returns {Promise<Object>}
  */
-export const getAvailableSkusGrouped = async ({sceneId, sceneVersion = 'latest', sceneHost = null, locationId = null}) =>
+export const getAvailableSkusGrouped = async (params) =>
 {
+	const {sceneId, sceneVersion, sceneHost, locationId} = params;
 	const {data:variationData} = await getVariationJsonData({sceneId, sceneVersion, sceneHost});
 	
 	let onlyVariationGroupIds = null;
@@ -65,15 +66,16 @@ export const getAvailableSkusGrouped = async ({sceneId, sceneVersion = 'latest',
 /**
  * Returns an object with variation group IDs as keys, and arrays of SKUs as values.
  *
- * @param {Object} props
- * @param {string} props.sceneId
- * @param {string|null} [props.sceneVersion]
- * @param {string|null} [props.sceneHost]
- * @param {string|null} [props.locationId]
- * @returns [{}|null, boolean, string|null]
+ * @param {Object} params
+ * @param {string} params.sceneId
+ * @param {string|null} [params.sceneVersion]
+ * @param {string|null} [params.sceneHost]
+ * @param {string|null} [params.locationId]
+ * @returns [Object|null, boolean, string|null]
  */
-export const useAvailableSkusGrouped = ({sceneId, sceneVersion = 'latest', sceneHost = null, locationId = null}) =>
+export const useAvailableSkusGrouped = (params) =>
 {
+	const {sceneId, sceneVersion, sceneHost, locationId} = params;
 	return LeRed.usePromises(() => getAvailableSkusGrouped({sceneId, sceneVersion, sceneHost, locationId}), [sceneId, sceneVersion, sceneHost, locationId]);
 };
 
@@ -81,15 +83,16 @@ export const useAvailableSkusGrouped = ({sceneId, sceneVersion = 'latest', scene
 /**
  * Returns an array of SKUs.
  *
- * @param {Object} props
- * @param {string} props.sceneId
- * @param {string|null} [props.sceneVersion]
- * @param {string|null} [props.sceneHost]
- * @param {string|null} [props.locationId]
+ * @param {Object} params
+ * @param {string} params.sceneId
+ * @param {string|null} [params.sceneVersion]
+ * @param {string|null} [params.sceneHost]
+ * @param {string|null} [params.locationId]
  * @returns {Promise<string[]>}
  */
-export const getAvailableSkus = async ({sceneId, sceneVersion = 'latest', sceneHost = null, locationId = null}) =>
+export const getAvailableSkus = async (params) =>
 {
+	const {sceneId, sceneVersion, sceneHost, locationId} = params;
 	const skusGrouped = await getAvailableSkusGrouped({sceneId, sceneVersion, sceneHost, locationId});
 	const result = [];
 	LeUtils.each(skusGrouped, skus =>
@@ -102,15 +105,16 @@ export const getAvailableSkus = async ({sceneId, sceneVersion = 'latest', sceneH
 /**
  * Returns an array of SKUs.
  *
- * @param {Object} props
- * @param {string} props.sceneId
- * @param {string|null} [props.sceneVersion]
- * @param {string|null} [props.sceneHost]
- * @param {string|null} [props.locationId]
+ * @param {Object} params
+ * @param {string} params.sceneId
+ * @param {string|null} [params.sceneVersion]
+ * @param {string|null} [params.sceneHost]
+ * @param {string|null} [params.locationId]
  * @returns [string[]|null, boolean, string|null]
  */
-export const useAvailableSkus = ({sceneId, sceneVersion = 'latest', sceneHost = null, locationId = null}) =>
+export const useAvailableSkus = (params) =>
 {
+	const {sceneId, sceneVersion, sceneHost, locationId} = params;
 	return LeRed.usePromises(() => getAvailableSkus({sceneId, sceneVersion, sceneHost, locationId}), [sceneId, sceneVersion, sceneHost, locationId]);
 };
 
@@ -118,14 +122,15 @@ export const useAvailableSkus = ({sceneId, sceneVersion = 'latest', sceneHost = 
 /**
  * Returns an array of location IDs.
  *
- * @param {Object} props
- * @param {string} props.sceneId
- * @param {string|null} [props.sceneVersion]
- * @param {string|null} [props.sceneHost]
+ * @param {Object} params
+ * @param {string} params.sceneId
+ * @param {string|null} [params.sceneVersion]
+ * @param {string|null} [params.sceneHost]
  * @returns {Promise<string[]>}
  */
-export const getAvailableLocationIds = async ({sceneId, sceneVersion = 'latest', sceneHost = null}) =>
+export const getAvailableLocationIds = async (params) =>
 {
+	const {sceneId, sceneVersion, sceneHost} = params;
 	const {data:variationData} = await getVariationJsonData({sceneId, sceneVersion, sceneHost});
 	return LeUtils.filter(LeUtils.mapToArray(variationData?.locations, location => location.locationId), locationId => !!locationId);
 };
@@ -133,13 +138,14 @@ export const getAvailableLocationIds = async ({sceneId, sceneVersion = 'latest',
 /**
  * Returns an array of location IDs.
  *
- * @param {Object} props
- * @param {string} props.sceneId
- * @param {string|null} [props.sceneVersion]
- * @param {string|null} [props.sceneHost]
+ * @param {Object} params
+ * @param {string} params.sceneId
+ * @param {string|null} [params.sceneVersion]
+ * @param {string|null} [params.sceneHost]
  * @returns [string[]|null, boolean, string|null]
  */
-export const useAvailableLocationIds = ({sceneId, sceneVersion = 'latest', sceneHost = null}) =>
+export const useAvailableLocationIds = (params) =>
 {
+	const {sceneId, sceneVersion, sceneHost} = params;
 	return LeRed.usePromises(() => getAvailableLocationIds({sceneId, sceneVersion, sceneHost}), [sceneId, sceneVersion, sceneHost]);
 };

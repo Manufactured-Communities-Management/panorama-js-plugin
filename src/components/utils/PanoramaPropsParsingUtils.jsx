@@ -13,10 +13,10 @@ export const getCorrectedGivenProps = (props) =>
 				newValue = STRING(value).replace(/[^a-zA-Z0-9_]+/g, '');
 				break;
 			case 'sceneVersion':
-				newValue = STRING(!value ? 'latest' : value).trim().toLowerCase();
+				newValue = STRING(value || 'latest').trim().toLowerCase();
 				break;
 			case 'sceneHost':
-				newValue = STRING_ANY(value, 'https://d1i78mubvvqzk6.cloudfront.net');
+				newValue = value || 'https://d1i78mubvvqzk6.cloudfront.net';
 				break;
 			case 'minFov':
 				newValue = Math.max(1, FLOAT_LAX_ANY(value, 20));

@@ -40,10 +40,11 @@ const fetchJsonCached = (() =>
  * @param {string} props.sceneId
  * @param {string|null} [props.sceneVersion]
  * @param {string|null} [props.sceneHost]
- * @returns {Promise<{version:string, url:string, data:{}}>}
+ * @returns {Promise<{version:string, url:string, data:Object}>}
  */
-export const getVariationJsonData = async ({sceneId:givenSceneId, sceneVersion:givenSceneVersion = 'latest', sceneHost:givenSceneHost = null}) =>
+export const getVariationJsonData = async (props) =>
 {
+	const {sceneId:givenSceneId, sceneVersion:givenSceneVersion, sceneHost:givenSceneHost} = props;
 	let {sceneId, sceneVersion, sceneHost} = getCorrectedGivenProps({sceneId:givenSceneId, sceneVersion:givenSceneVersion, sceneHost:givenSceneHost});
 	
 	if(sceneVersion === 'latest')
@@ -75,9 +76,10 @@ export const getVariationJsonData = async ({sceneId:givenSceneId, sceneVersion:g
  * @param {string} props.sceneId
  * @param {string|null} [props.sceneVersion]
  * @param {string|null} [props.sceneHost]
- * @returns [{version:string, url:string, data:{}}|null, boolean, string|null]
+ * @returns [{version:string, url:string, data:Object}|null, boolean, string|null]
  */
-export const useVariationJsonData = ({sceneId, sceneVersion = 'latest', sceneHost = null}) =>
+export const useVariationJsonData = (props) =>
 {
+	const {sceneId, sceneVersion, sceneHost} = props;
 	return LeRed.usePromises(() => getVariationJsonData({sceneId, sceneVersion, sceneHost}), [sceneId, sceneVersion, sceneHost]);
 };

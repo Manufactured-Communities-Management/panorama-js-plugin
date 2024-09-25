@@ -5,7 +5,7 @@ import {getLocationIndexByLocationId, getSelectedVariationIndexesBySku, getTextu
 import {PanoramaRenderer} from '../rendering/PanoramaRenderer.jsx';
 
 
-export const PanoramaLoaderVariationsParser = ({src = null, locationIndex:givenLocationIndex = null, ...props}) =>
+export const PanoramaLoaderVariationsParser = ({src = undefined, locationIndex:givenLocationIndex = undefined, ...props}) =>
 {
 	const {variations, sceneId, skus, locationId, sceneHost, sceneUrl, getErrorWidget, getLoadingWidget} = props;
 	
