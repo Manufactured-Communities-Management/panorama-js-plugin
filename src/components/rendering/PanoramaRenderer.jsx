@@ -20,7 +20,7 @@ export const PanoramaRenderer = LeRed.memo(({src, sceneId, sceneHost, sceneUrl, 
 	return (<>
 		{!!loading && getLoadingWidget()}
 		<div style={{width:'100%', height:'100%', overflow:'hidden', ...(!loading ? {} : {width:'1px', height:'1px', opacity:'0'})}}>
-			<Canvas flat={true} linear={true} antialias={true} precision="highp" shadows={false} depth={false} stencil={false} frameloop="demand">
+			<Canvas flat={true} linear={true} shadows={false} frameloop="demand" gl={{precision:'highp', antialias:false, depth:false, stencil:false}}>
 				<PerspectiveCamera makeDefault position={[0, 0, 0]}/>
 				<PanoramaControls minFov={minFov} maxFov={maxFov} initialFov={initialFov} onFovChanged={onFovChanged} initialCameraRotation={initialCameraRotation} onCameraRotationChanged={onCameraRotationChanged} lookSpeed={lookSpeed} lookSpeedX={lookSpeedX} lookSpeedY={lookSpeedY} zoomSpeed={zoomSpeed}/>
 				
