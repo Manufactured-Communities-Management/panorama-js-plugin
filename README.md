@@ -10,6 +10,15 @@
 **@mcmhomes/panorama-viewer** is a React library, made for visualizing the panorama pictures made by the [MCM Panorama UnrealEngine plugin][panorama-ue-plugin].
 
 
+## Installation
+
+To install the library, run the following command:
+
+```bash
+npm install @mcmhomes/panorama-viewer
+```
+
+
 ## Usage
 
 To show a panorama picture, you can use the `PanoramaViewer` component, like so:
