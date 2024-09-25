@@ -27,7 +27,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	cameraMaxFov.current = FLOAT_LAX_ANY(maxFov, 179);
 	const clampFov = (fov) => Math.min(cameraMaxFov.current, Math.max(cameraMinFov.current, FLOAT_LAX_ANY(fov, 90)));
 	
-	const {camera, gl} = useThree();
+	const {gl, camera, invalidate} = useThree();
 	const isDragging = LeRed.useRef(false);
 	const startMousePosition = LeRed.useRef({x:0, y:0});
 	const startCameraRotation = LeRed.useRef({yaw:FLOAT_LAX_ANY(initialCameraRotation?.yaw, 0), pitch:FLOAT_LAX_ANY(initialCameraRotation?.pitch, 0)});
@@ -112,7 +112,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	}, []);
 	
 	
-	useFrame(() =>
+	LeRed.useEffectAnimationFrameInterval(() =>
 	{
 		if(!isDragging.current)
 		{
@@ -129,11 +129,21 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 			cameraRotationSpeed.current.pitch *= 1 - ROTATION_DRAG_WHEN_DRAGGING;
 		}
 		
+		if(Math.abs(cameraRotationSpeed.current.yaw) < 0.0001)
+		{
+			cameraRotationSpeed.current.yaw = 0;
+		}
+		if(Math.abs(cameraRotationSpeed.current.pitch) < 0.0001)
+		{
+			cameraRotationSpeed.current.pitch = 0;
+		}
+		
 		if((cameraRotation.current.yaw !== camera.rotation.y) || (cameraRotation.current.pitch !== camera.rotation.x))
 		{
 			camera.rotation.order = 'YXZ'; // yaw first, then pitch
 			camera.rotation.y = cameraRotation.current.yaw;
 			camera.rotation.x = cameraRotation.current.pitch;
+			invalidate();
 			
 			const roundedRotation = {yaw:Math.round(cameraRotation.current.yaw * 1000) / 1000, pitch:Math.round(cameraRotation.current.pitch * 1000) / 1000};
 			if(!LeUtils.equals(lastCameraRotationCallbackParams.current, roundedRotation))
@@ -147,6 +157,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 		{
 			camera.fov = FLOAT_LAX_ANY(cameraFov.current, 90);
 			camera.updateProjectionMatrix();
+			invalidate();
 			
 			const roundedFov = Math.round(cameraFov.current * 10) / 10;
 			if(!LeUtils.equals(lastCameraFovCallbackParams.current, roundedFov))
@@ -155,7 +166,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 				onFovChanged?.(roundedFov);
 			}
 		}
-	});
+	}, [camera, invalidate]);
 	
 	
 	LeRed.useEffect(() =>

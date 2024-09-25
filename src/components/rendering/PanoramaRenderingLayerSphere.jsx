@@ -6,7 +6,7 @@ import {useThree} from '@react-three/fiber';
 import {createCubeMaterial, createCubeTexture, dispose} from '../utils/PanoramaRendererUtils.jsx';
 
 
-const DEFAULT_OBJECT_PARAMS = {matrixAutoUpdate:false, frustumCulled:false, receiveShadow:false, castShadow:false};
+const DEFAULT_OBJECT_PARAMS = {matrixAutoUpdate:false, receiveShadow:false, castShadow:false};
 const DEFAULT_MATERIAL_PARAMS = {visible:false, transparent:true, depthTest:false, depthWrite:false};
 
 
@@ -66,12 +66,12 @@ export const PanoramaRenderingLayerSphere = LeRed.memo(({renderOrder, radius, te
 			setSphereMaterial(null);
 			dispose(cubeTexture, maskCubeTexture, material);
 		};
-	}, [gl, textures]);
+	}, [gl, textures, maskTextures]);
 	
 	
 	return (
 		<mesh {...DEFAULT_OBJECT_PARAMS} geometry={geometry} renderOrder={renderOrder}>
-			{!!sphereMaterial && (<primitive {...DEFAULT_MATERIAL_PARAMS} object={sphereMaterial} opacity={opacity}/>)}
+			{!!sphereMaterial && (<primitive {...DEFAULT_MATERIAL_PARAMS} object={sphereMaterial} visible={true} opacity={opacity}/>)}
 			{!sphereMaterial && (<meshBasicMaterial {...DEFAULT_MATERIAL_PARAMS} {...sphereMaterialProps} opacity={opacity}/>)}
 		</mesh>
 	);

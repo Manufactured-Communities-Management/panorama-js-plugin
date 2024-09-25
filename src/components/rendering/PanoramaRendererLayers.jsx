@@ -105,7 +105,7 @@ export const PanoramaRendererLayers = LeRed.memo(({src, locationIndex}) =>
 			return 0;
 		});
 		setCurrentLayers([...currentLayersRef.current]);
-	}, [src]);
+	}, [src, locationIndex]);
 	
 	
 	return (<>

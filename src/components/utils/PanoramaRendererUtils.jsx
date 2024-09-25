@@ -76,6 +76,29 @@ export const loadTextures = (() =>
 })();
 
 
+export const getTextureIds = (...textures) =>
+{
+	let result = [];
+	const loop = (textures) =>
+	{
+		textures.forEach(texture =>
+		{
+			if(Array.isArray(texture))
+			{
+				loop(texture);
+				return;
+			}
+			if(texture?.uuid)
+			{
+				result.push(texture.uuid);
+			}
+		});
+	};
+	loop(textures);
+	return result;
+};
+
+
 export const createCubeTexture = (textures) =>
 {
 	const cubeTexture = (() =>
