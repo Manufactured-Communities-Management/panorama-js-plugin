@@ -71,7 +71,7 @@ export const getAvailableSkusGrouped = async (params) =>
  * @param {string|null} [params.sceneVersion]
  * @param {string|null} [params.sceneHost]
  * @param {string|null} [params.locationId]
- * @returns [Object|null, boolean, string|null]
+ * @returns {[Object|null, boolean, string|null]}
  */
 export const useAvailableSkusGrouped = (params) =>
 {
@@ -110,7 +110,7 @@ export const getAvailableSkus = async (params) =>
  * @param {string|null} [params.sceneVersion]
  * @param {string|null} [params.sceneHost]
  * @param {string|null} [params.locationId]
- * @returns [string[]|null, boolean, string|null]
+ * @returns {[string[]|null, boolean, string|null]}
  */
 export const useAvailableSkus = (params) =>
 {
@@ -142,7 +142,7 @@ export const getAvailableLocationIds = async (params) =>
  * @param {string} params.sceneId
  * @param {string|null} [params.sceneVersion]
  * @param {string|null} [params.sceneHost]
- * @returns [string[]|null, boolean, string|null]
+ * @returns {[string[]|null, boolean, string|null]}
  */
 export const useAvailableLocationIds = (params) =>
 {

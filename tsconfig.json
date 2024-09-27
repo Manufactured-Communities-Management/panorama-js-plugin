@@ -1,0 +1,42 @@
+{
+  "include": [
+    "./src/**/*"
+  ],
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es5",
+      "es6",
+      "es2016",
+      "es2017",
+      "es2018",
+      "es2019",
+      "es2020",
+      "es2021",
+      "es2022",
+      "es2023",
+      "esnext"
+    ],
+    "allowJs": true,
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "esModuleInterop": true,
+    "jsx": "react",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "outDir": "./build",
+    "removeComments": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "stripInternal": true,
+    "target": "esnext"
+  },
+  "typeAcquisition": {
+    "include": [
+      "react",
+      "react-dom"
+    ]
+  }
+}

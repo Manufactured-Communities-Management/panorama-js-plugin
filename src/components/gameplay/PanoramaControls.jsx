@@ -1,7 +1,7 @@
 import {LeRed} from '@lowentry/react-redux';
 import {LeUtils, FLOAT_LAX_ANY} from '@lowentry/utils';
 import {MathUtils} from 'three';
-import {useFrame, useThree} from '@react-three/fiber';
+import {useThree} from '@react-three/fiber';
 
 
 export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged, lookSpeed:givenLookSpeed, lookSpeedX:givenLookSpeedX, lookSpeedY:givenLookSpeedY, zoomSpeed:givenZoomSpeed}) =>

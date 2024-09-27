@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {ReactNode, FunctionComponent} from 'react';
 import {LeRed} from '@lowentry/react-redux';
 import {LeUtils} from '@lowentry/utils';
 import {PanoramaDefaultLoadingWidget} from './widgets/PanoramaDefaultLoadingWidget.jsx';
@@ -8,30 +8,33 @@ import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils.jsx';
 
 
 /**
+ * @exports
+ * @typedef {Object} PanoramaViewerProps
+ * @property {string} sceneId
+ * @property {string|null} [sceneVersion]
+ * @property {string|null} [sceneHost]
+ * @property {string[]|null} [skus]
+ * @property {string|null} [locationId]
+ * @property {((error:{canRetry:boolean, retry:()=>void, message:string, reason:string, id:string, data:Object})=>void)|null} [onError]
+ * @property {((error:{canRetry:boolean, retry:()=>void, message:string, reason:string, id:string, data:Object})=>ReactNode)|null} [errorWidget]
+ * @property {(()=>ReactNode)|null} [loadingWidget]
+ * @property {number|null} [minFov]
+ * @property {number|null} [maxFov]
+ * @property {number|null} [initialFov]
+ * @property {string|null} [basisTranscoderPath]
+ * @property {((newFov:number)=>void)|null} [onFovChanged]
+ * @property {{yaw:number, pitch:number}|null} [initialCameraRotation]
+ * @property {((newRotation:{yaw:number, pitch:number})=>void)|null} [onCameraRotationChanged]
+ * @property {number|null} [lookSpeed]
+ * @property {number|null} [lookSpeedX]
+ * @property {number|null} [lookSpeedY]
+ * @property {number|null} [zoomSpeed]
+ */
+/**
  * The PanoramaViewer component is the main component for rendering a panorama scene.
  *
- * @param {Object} props
- * @param {string} props.sceneId
- * @param {string|null} [props.sceneVersion]
- * @param {string|null} [props.sceneHost]
- * @param {string[]|null} [props.skus]
- * @param {string|null} [props.locationId]
- * @param {((error:{canRetry:boolean, retry:()=>void, message:string, reason:string, id:string, data:Object})=>void)|null} [props.onError]
- * @param {((error:{canRetry:boolean, retry:()=>void, message:string, reason:string, id:string, data:Object})=>JSX.Element)|null} [props.errorWidget]
- * @param {(()=>JSX.Element)|null} [props.loadingWidget]
- * @param {number|null} [props.minFov]
- * @param {number|null} [props.maxFov]
- * @param {number|null} [props.initialFov]
- * @param {string|null} [props.basisTranscoderPath]
- * @param {((newFov:number)=>void)|null} [props.onFovChanged]
- * @param {{yaw:number, pitch:number}|null} [props.initialCameraRotation]
- * @param {((newRotation:{yaw:number, pitch:number})=>void)|null} [props.onCameraRotationChanged]
- * @param {number|null} [props.lookSpeed]
- * @param {number|null} [props.lookSpeedX]
- * @param {number|null} [props.lookSpeedY]
- * @param {number|null} [props.zoomSpeed]
- *
- * @returns {React.ReactElement}
+ * @component
+ * @type {FunctionComponent<PanoramaViewerProps>}
  */
 export const PanoramaViewer = LeRed.memo((props) =>
 {

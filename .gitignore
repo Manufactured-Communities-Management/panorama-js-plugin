@@ -7,3 +7,4 @@ bin/
 build/
 dist/
 coverage/
+tsdoc-metadata.json
