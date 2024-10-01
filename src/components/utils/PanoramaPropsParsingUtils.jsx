@@ -1,6 +1,12 @@
 import {LeUtils, FLOAT_LAX_ANY, STRING, STRING_ANY} from '@lowentry/utils';
 
 
+/**
+ * Returns the given props with corrected values.
+ *
+ * @param {Object} props
+ * @returns {Object}
+ */
 export const getCorrectedGivenProps = (props) =>
 {
 	const result = {};
@@ -16,7 +22,7 @@ export const getCorrectedGivenProps = (props) =>
 				newValue = STRING(value || 'latest').trim().toLowerCase();
 				break;
 			case 'sceneHost':
-				newValue = value || 'https://d1i78mubvvqzk6.cloudfront.net';
+				newValue = STRING(value || 'https://d1i78mubvvqzk6.cloudfront.net').trim();
 				break;
 			case 'minFov':
 				newValue = Math.max(1, FLOAT_LAX_ANY(value, 20));
@@ -37,3 +43,26 @@ export const getCorrectedGivenProps = (props) =>
 	});
 	return result;
 };
+
+
+/**
+ * Returns true if the given scene host is a private URL (like localhost, 127.0.0.1, etc).
+ *
+ * @param {string} sceneHost
+ * @returns {boolean}
+ */
+export const isSceneHostPrivate = (() =>
+{
+	const cache = {};
+	return (sceneHost) =>
+	{
+		if(!(sceneHost in cache))
+		{
+			let sceneHostLower = sceneHost.toLowerCase().trim();
+			sceneHostLower = sceneHostLower.replace(/^[a-z]+:\/\//, '');
+			sceneHostLower = sceneHostLower.replace(/[:/].*$/, '');
+			cache[sceneHost] = LeUtils.isGivenHostPrivate(sceneHostLower);
+		}
+		return cache[sceneHost];
+	};
+})();

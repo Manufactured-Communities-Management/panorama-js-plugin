@@ -78,11 +78,8 @@ To run the Docker script, make sure of the following:
 
 The [MCM Panorama Demo Frontend][panorama-frontend] (whether it's running locally or in production) can also access locally-hosted panorama pictures. This is useful to test panorama pictures before uploading them to production. To do this, make sure of the following:
 
-1. The panorama pictures are hosted locally, like by running `npm exec http-server --yes` in the directory where all your panorama collection folders are located.
+1. The panorama pictures are hosted locally, like by running `npx --yes serve ./ -l 8080 --cors` in the directory where all your panorama collection folders are located.
 2. You add the required query parameter to the URL, like so:
-    - local demo frontend: `http://localhost:8000/?a=xxxxxxxxx&b=yyyyyyyyy&c=http://localhost:8080/`
-    - production demo frontend: `https://d11xh1fqz0z9k8.cloudfront.net/?a=xxxxxxxxx&b=yyyyyyyyy&c=http://localhost:8080/`
-    - the URL can be any URL, including any path, port number, etc, so a URL like this is also valid: `http://localhost/my-panorama-pictures/`
-3. The panorama pictures are accessible at the URL provided in the query parameter, in a folder as such: `[c]/[a]/[b]/`.
-    - for example, if your panorama scene can be found at `https://localhost:8080/somepaths/panoramas/1725093641/`, then `c` should be `https://localhost:8080/somepaths`, `a` should be `panoramas`, and `b` should be `1725093641`, so the URL would then be: `https://d11xh1fqz0z9k8.cloudfront.net/?a=panoramas&b=1725093641&c=https://localhost:8080/somepaths`
-    - this is due to the fact that `a` defines the scene ID, `b` defines the scene version, and `c` defines the host, and scenes are accessed at `[host]/[sceneId]/[sceneVersion]/`
+    - local demo frontend: `http://localhost:8000/?c=http://localhost:8080`
+    - production demo frontend: `https://d11xh1fqz0z9k8.cloudfront.net/?c=http://localhost:8080`
+    - the URL can be any URL, including any path, port number, etc, so a URL like this is also valid: `http://localhost/my-panorama-pictures`

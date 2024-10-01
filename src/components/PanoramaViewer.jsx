@@ -4,7 +4,7 @@ import {LeUtils} from '@lowentry/utils';
 import {PanoramaDefaultLoadingWidget} from './widgets/PanoramaDefaultLoadingWidget.jsx';
 import {PanoramaDefaultErrorWidget} from './widgets/PanoramaDefaultErrorWidget.jsx';
 import {PanoramaLoaderVariationsRetriever} from './loading/PanoramaLoaderVariationsRetriever.jsx';
-import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils.jsx';
+import {getCorrectedGivenProps, isSceneHostPrivate} from './utils/PanoramaPropsParsingUtils.jsx';
 
 
 /**
@@ -70,17 +70,20 @@ export const PanoramaViewer = LeRed.memo((props) =>
 	}, [loadingWidget]);
 	
 	
-	if(!givenSceneId)
+	if(!isSceneHostPrivate(sceneHost))
 	{
-		return getErrorWidget({canRetry:false, id:'missing-scene-id', message:'Missing scene ID', reason:'the PanoramaViewer component was rendered without being given a valid sceneId', data:{sceneId:givenSceneId}});
-	}
-	if(sceneId !== givenSceneId)
-	{
-		return getErrorWidget({canRetry:false, id:'invalid-scene-id', message:'Invalid scene ID: ' + givenSceneId, reason:'the scene ID contains invalid characters, only "a-z 0-9 _" is allowed', data:{sceneId:givenSceneId}});
-	}
-	if(!sceneId)
-	{
-		return getErrorWidget({canRetry:false, id:'missing-scene-id', message:'Missing scene ID', reason:'the PanoramaViewer component was rendered without being given a valid sceneId', data:{sceneId:givenSceneId}});
+		if(!givenSceneId)
+		{
+			return getErrorWidget({canRetry:false, id:'missing-scene-id', message:'Missing scene ID', reason:'the PanoramaViewer component was rendered without being given a valid sceneId', data:{sceneId:givenSceneId}});
+		}
+		if(sceneId !== givenSceneId)
+		{
+			return getErrorWidget({canRetry:false, id:'invalid-scene-id', message:'Invalid scene ID: ' + givenSceneId, reason:'the scene ID contains invalid characters, only "a-z 0-9 _" is allowed', data:{sceneId:givenSceneId}});
+		}
+		if(!sceneId)
+		{
+			return getErrorWidget({canRetry:false, id:'missing-scene-id', message:'Missing scene ID', reason:'the PanoramaViewer component was rendered without being given a valid sceneId', data:{sceneId:givenSceneId}});
+		}
 	}
 	
 	if(!attemptId)

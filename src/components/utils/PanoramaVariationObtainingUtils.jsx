@@ -1,6 +1,6 @@
 import {LeRed} from '@lowentry/react-redux';
 import {LeUtils, STRING} from '@lowentry/utils';
-import {getCorrectedGivenProps} from './PanoramaPropsParsingUtils.jsx';
+import {getCorrectedGivenProps, isSceneHostPrivate} from './PanoramaPropsParsingUtils.jsx';
 
 
 /**
@@ -47,16 +47,25 @@ export const getVariationJsonData = async (props) =>
 	const {sceneId:givenSceneId, sceneVersion:givenSceneVersion, sceneHost:givenSceneHost} = props;
 	let {sceneId, sceneVersion, sceneHost} = getCorrectedGivenProps({sceneId:givenSceneId, sceneVersion:givenSceneVersion, sceneHost:givenSceneHost});
 	
-	if(sceneVersion === 'latest')
+	let sceneUrl;
+	if(isSceneHostPrivate(sceneHost))
 	{
-		const latestData = await fetchJsonCached(sceneHost + '/' + sceneId + '/latest.json');
-		if(!latestData || !latestData?.version)
-		{
-			throw new Error('the latest.json file doesn\'t contain a version number: ' + sceneHost + '/' + sceneId + '/latest.json');
-		}
-		sceneVersion = latestData.version;
+		sceneVersion = 'latest';
+		sceneUrl = sceneHost + (sceneHost.endsWith('/') ? '' : '/');
 	}
-	const sceneUrl = sceneHost + '/' + sceneId + '/' + sceneVersion + '/';
+	else
+	{
+		if(sceneVersion === 'latest')
+		{
+			const latestData = await fetchJsonCached(sceneHost + '/' + sceneId + '/latest.json');
+			if(!latestData || !latestData?.version)
+			{
+				throw new Error('the latest.json file doesn\'t contain a version number: ' + sceneHost + '/' + sceneId + '/latest.json');
+			}
+			sceneVersion = latestData.version;
+		}
+		sceneUrl = sceneHost + '/' + sceneId + '/' + sceneVersion + '/';
+	}
 	
 	const variationData = await fetchJsonCached(sceneUrl + 'variations.json');
 	if(!variationData)
