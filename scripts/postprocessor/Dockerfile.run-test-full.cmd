@@ -25,4 +25,4 @@ cd /d "./scripts/postprocessor"
 timeout /t 5 /nobreak
 
 cd /d "%initialDir%"
-"%repoRootDir%/scripts/postprocessor/Dockerfile.run-sso.cmd"
+"%repoRootDir%/scripts/postprocessor/Dockerfile.run-test.cmd"
