@@ -1,4 +1,4 @@
-import React, {ReactNode, FunctionComponent} from 'react';
+import React from 'react';
 import {LeRed} from '@lowentry/react-redux';
 import {LeUtils} from '@lowentry/utils';
 import {PanoramaDefaultLoadingWidget} from './widgets/PanoramaDefaultLoadingWidget.jsx';
@@ -16,8 +16,8 @@ import {getCorrectedGivenProps, isSceneHostPrivate} from './utils/PanoramaPropsP
  * @property {string[]|null} [skus]
  * @property {string|null} [locationId]
  * @property {((error:{canRetry:boolean, retry:()=>void, message:string, reason:string, id:string, data:Object})=>void)|null} [onError]
- * @property {((error:{canRetry:boolean, retry:()=>void, message:string, reason:string, id:string, data:Object})=>ReactNode)|null} [errorWidget]
- * @property {(()=>ReactNode)|null} [loadingWidget]
+ * @property {((error:{canRetry:boolean, retry:()=>void, message:string, reason:string, id:string, data:Object})=>import('react').ReactNode)|null} [errorWidget]
+ * @property {(()=>import('react').ReactNode)|null} [loadingWidget]
  * @property {number|null} [minFov]
  * @property {number|null} [maxFov]
  * @property {number|null} [initialFov]
@@ -34,7 +34,7 @@ import {getCorrectedGivenProps, isSceneHostPrivate} from './utils/PanoramaPropsP
  * The PanoramaViewer component is the main component for rendering a panorama scene.
  *
  * @component
- * @type {FunctionComponent<PanoramaViewerProps>}
+ * @type {import('react').FunctionComponent<PanoramaViewerProps>}
  */
 export const PanoramaViewer = LeRed.memo((props) =>
 {
