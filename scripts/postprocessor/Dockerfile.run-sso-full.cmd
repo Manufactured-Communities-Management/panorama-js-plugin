@@ -30,5 +30,5 @@ timeout /t 5 /nobreak
 cd /d "%initialDir%"
 
 
-docker run --rm -it -v %cd%:/data generate-panorama sso sso
+docker run --rm -it -v "%cd%":/data generate-panorama sso sso
 pause

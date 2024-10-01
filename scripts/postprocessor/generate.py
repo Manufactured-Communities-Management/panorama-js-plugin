@@ -37,6 +37,7 @@ print('Input directory:', input_folder)
 print('Input args:', input_args)
 print('AWS Access Key ID:', aws_secret_access_key)
 print('AWS Secret Access Key:', aws_secret_access_key)
+print()
 if not os.path.exists(input_folder):
     print('ERROR: Input directory "' + input_folder + '" doesn\'t exist')
     sys.exit(1)
@@ -114,6 +115,7 @@ def process_image(filepath):
 def action():
     # Get the scene ID
     scene_id = str(get_json_field(join(input_folder, 'variations.json'), 'sceneId'))
+    print('Scene ID:', scene_id)
 
     # Configure S3 and verify access
     print()
@@ -184,7 +186,7 @@ def action():
         # Done
         print()
         print('Done!')
-        print('Test at: https://d11xh1fqz0z9k8.cloudfront.net/?s=' + s3folder)
+        print('Test at: https://d11xh1fqz0z9k8.cloudfront.net/?a=' + scene_id)
     else:
         # Done
         print()
