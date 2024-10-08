@@ -66,8 +66,8 @@ def process_image(filepath):
 
     panorama_type = 'full'
     filename_split = filename.split('_')
-    if len(filename_split) >= 3:
-        potential_type = filename_split[2]
+    if len(filename_split) >= 4:
+        potential_type = filename_split[3]
         if potential_type.endswith('c'):
             panorama_type = 'layer_color'
         elif potential_type.endswith('m'):
