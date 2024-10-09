@@ -39,9 +39,9 @@ import {getCorrectedGivenProps, isHostPrivate} from './utils/PanoramaPropsParsin
  */
 export const PanoramaViewer = LeRed.memo((props) =>
 {
-	const {homeId:givenHomeId, homeVersion:givenHomeVersion, host:givenHost, locationId:givenLocationId, styleId:givenStyleId, onError, errorWidget, loadingWidget, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, basisTranscoderPath:givenBasisTranscoderPath, ...other} = props;
+	const {homeId:givenHomeId, homeVersion:givenHomeVersion, host:givenHost, styleId:givenStyleId, locationId:givenLocationId, onError, errorWidget, loadingWidget, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, basisTranscoderPath:givenBasisTranscoderPath, ...other} = props;
 	
-	const {homeId, homeVersion, host, locationId, styleId, basisTranscoderPath} = LeRed.useMemo(() => getCorrectedGivenProps({homeId:givenHomeId, homeVersion:givenHomeVersion, host:givenHost, locationId:givenLocationId, styleId:givenStyleId, basisTranscoderPath:givenBasisTranscoderPath}), [givenHomeId, givenHomeVersion, givenHost, givenBasisTranscoderPath]);
+	const {homeId, homeVersion, host, locationId, styleId, basisTranscoderPath} = LeRed.useMemo(() => getCorrectedGivenProps({homeId:givenHomeId, homeVersion:givenHomeVersion, host:givenHost, styleId:givenStyleId, locationId:givenLocationId, basisTranscoderPath:givenBasisTranscoderPath}), [givenHomeId, givenHomeVersion, givenHost, givenStyleId, givenLocationId, givenBasisTranscoderPath]);
 	const {minFov, maxFov, initialFov} = LeRed.useMemo(() => getCorrectedGivenProps({minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov}), [givenMinFov, givenMaxFov, givenInitialFov]);
 	
 	const [attemptId, setAttemptId] = LeRed.useState(LeUtils.uniqueId());
@@ -102,6 +102,6 @@ export const PanoramaViewer = LeRed.memo((props) =>
 	}
 	
 	return (<>
-		<PanoramaLoaderVariationsRetriever homeId={homeId} homeVersion={homeVersion} host={host} locationId={locationId} styleId={styleId} basisTranscoderPath={basisTranscoderPath} minFov={minFov} maxFov={maxFov} initialFov={initialFov} getErrorWidget={getErrorWidget} getLoadingWidget={getLoadingWidget} {...other}/>
+		<PanoramaLoaderVariationsRetriever homeId={homeId} homeVersion={homeVersion} host={host} styleId={styleId} locationId={locationId} basisTranscoderPath={basisTranscoderPath} minFov={minFov} maxFov={maxFov} initialFov={initialFov} getErrorWidget={getErrorWidget} getLoadingWidget={getLoadingWidget} {...other}/>
 	</>);
 });
