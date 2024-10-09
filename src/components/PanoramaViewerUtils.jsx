@@ -141,6 +141,42 @@ export const useAvailableSkus = (params) =>
 
 
 /**
+ * Returns an array of style IDs.
+ *
+ * @param {Object} params
+ * @param {string} params.homeId
+ * @param {string|null} [params.homeVersion]
+ * @param {string|null} [params.host]
+ * @param {string|null} [params.locationId]
+ * @returns {Promise<string[]>}
+ */
+export const getAvailableStyleIds = async (params) =>
+{
+	const {homeId, homeVersion, host, locationId:givenLocationId} = params;
+	const {locationId} = getCorrectedGivenProps({locationId:givenLocationId});
+	const {data:variationData} = await getVariationJsonData({homeId, homeVersion, host});
+	const location = LeUtils.find(variationData?.locations, location => location?.locationId === locationId);
+	return LeUtils.filter(LeUtils.mapToArray(variationData?.styles, style => (!location || LeUtils.contains(location?.supportedStyleIds, style?.styleId)) ? STRING(style?.styleId) : null), styleId => !!styleId);
+};
+
+/**
+ * Returns an array of style IDs.
+ *
+ * @param {Object} params
+ * @param {string} params.homeId
+ * @param {string|null} [params.homeVersion]
+ * @param {string|null} [params.host]
+ * @param {string|null} [params.locationId]
+ * @returns {[string[]|null, boolean, string|null]}
+ */
+export const useAvailableStyleIds = (params) =>
+{
+	const {homeId, homeVersion, host, locationId} = params;
+	return LeRed.usePromises(() => getAvailableStyleIds({homeId, homeVersion, host, locationId}), [homeId, homeVersion, host, locationId]);
+};
+
+
+/**
  * Returns an array of location IDs.
  *
  * @param {Object} params
@@ -155,7 +191,7 @@ export const getAvailableLocationIds = async (params) =>
 	const {homeId, homeVersion, host, styleId:givenStyleId} = params;
 	const {styleId} = getCorrectedGivenProps({styleId:givenStyleId});
 	const {data:variationData} = await getVariationJsonData({homeId, homeVersion, host});
-	return LeUtils.filter(LeUtils.mapToArray(variationData?.locations, location => (!styleId && location?.supportedStyleIds?.includes(styleId)) ? STRING(location?.locationId) : null), locationId => !!locationId);
+	return LeUtils.filter(LeUtils.mapToArray(variationData?.locations, location => (!styleId || LeUtils.contains(location?.supportedStyleIds, styleId)) ? STRING(location?.locationId) : null), locationId => !!locationId);
 };
 
 /**

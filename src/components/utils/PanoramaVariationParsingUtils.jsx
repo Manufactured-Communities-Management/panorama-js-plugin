@@ -1,61 +1,4 @@
-import {LeUtils, IS_ARRAY, IS_OBJECT, ISSET, ARRAY} from '@lowentry/utils';
-
-
-export const getVariationGroupIndexByGroupId = (variationGroups, groupId) =>
-{
-	let variationGroupIndex = null;
-	LeUtils.each(variationGroups, (group, index) =>
-	{
-		if(group?.groupId === groupId)
-		{
-			variationGroupIndex = index;
-			return false;
-		}
-	});
-	return variationGroupIndex;
-};
-
-export const getVariationIndexOfVariationGroupBySku = (variationGroup, sku) =>
-{
-	let variationIndex = null;
-	LeUtils.each(variationGroup?.variations, (variation, index) =>
-	{
-		if(variation?.sku === sku)
-		{
-			variationIndex = index;
-			return false;
-		}
-	});
-	return variationIndex;
-};
-
-export const getStyleIndexByStyleId = (styles, styleId) =>
-{
-	let styleIndex = null;
-	LeUtils.each(styles, (style, index) =>
-	{
-		if(style?.styleId === styleId)
-		{
-			styleIndex = index;
-			return false;
-		}
-	});
-	return styleIndex;
-};
-
-export const getLocationIndexByLocationId = (locations, locationId) =>
-{
-	let locationIndex = null;
-	LeUtils.each(locations, (location, index) =>
-	{
-		if(location?.locationId === locationId)
-		{
-			locationIndex = index;
-			return false;
-		}
-	});
-	return locationIndex;
-};
+import {LeUtils, IS_ARRAY, IS_OBJECT, ISSET} from '@lowentry/utils';
 
 
 export const getSelectedVariationIndexesBySku = (variationGroups, skus) =>
@@ -68,8 +11,8 @@ export const getSelectedVariationIndexesBySku = (variationGroups, skus) =>
 			let skuFound = false;
 			LeUtils.each(variationGroups, (group, groupIndex) =>
 			{
-				let variationIndex = getVariationIndexOfVariationGroupBySku(group, sku);
-				if(variationIndex !== null)
+				let variationIndex = LeUtils.findIndex(group?.variations, variation => variation?.sku === sku);
+				if(ISSET(variationIndex))
 				{
 					selectedVariationIndexes[groupIndex] = variationIndex;
 					skuFound = true;
@@ -85,12 +28,12 @@ export const getSelectedVariationIndexesBySku = (variationGroups, skus) =>
 	{
 		LeUtils.each(skus, (sku, groupId) =>
 		{
-			const groupIndex = getVariationGroupIndexByGroupId(variationGroups, groupId);
+			const groupIndex = LeUtils.findIndex(variationGroups, variationGroup => variationGroup?.groupId === groupId);
 			if(groupIndex !== null)
 			{
 				const group = variationGroups[groupIndex];
-				const variationIndex = getVariationIndexOfVariationGroupBySku(group, sku);
-				if(variationIndex !== null)
+				const variationIndex = LeUtils.findIndex(group?.variations, variation => variation?.sku === sku);
+				if(ISSET(variationIndex))
 				{
 					selectedVariationIndexes[groupIndex] = variationIndex;
 				}
@@ -128,7 +71,7 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 	/** add full render **/
 	LeUtils.each(variationGroups, (group, groupIndex) =>
 	{
-		const locationVariationIndex = getVariationGroupIndexByGroupId(locationVariationGroups, group?.groupId);
+		const locationVariationIndex = LeUtils.findIndex(locationVariationGroups, locationVariationGroup => locationVariationGroup?.groupId === group?.groupId);
 		const locationVariationGroup = (locationVariationIndex === null) ? null : locationVariationGroups?.[locationVariationIndex];
 		locationVariationIndexIndexed[group?.groupId] = locationVariationIndex;
 		locationVariationGroupsIndexed[group?.groupId] = locationVariationGroup;
@@ -155,7 +98,7 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 		variationIndexesForLocation = [];
 		LeUtils.each(variationGroups, (group, groupIndex) =>
 		{
-			if((layerGroup?.groupId === group?.groupId) || ARRAY(locationVariationGroup?.layerDependencyGroupIds).includes(group?.groupId))
+			if((layerGroup?.groupId === group?.groupId) || LeUtils.contains(locationVariationGroup?.layerDependencyGroupIds, group?.groupId))
 			{
 				variationIndexesForLocation.push(selectedVariationIndexes[groupIndex] ?? 0);
 			}
