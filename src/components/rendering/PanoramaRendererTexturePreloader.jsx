@@ -7,7 +7,7 @@ import {loadMultiresTexture} from '../utils/PanoramaRendererUtils.jsx';
 import {PanoramaRenderingLayerMinimumLoadTime} from './PanoramaRenderingLayer.jsx';
 
 
-export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, homeUrl, locationIndex, basisTranscoderPath, setError, setLoading}) =>
+export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, homeUrl, styleIndex, locationIndex, basisTranscoderPath, setError, setLoading}) =>
 {
 	const {gl} = useThree();
 	
@@ -114,6 +114,6 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, 
 	}
 	
 	return (<>
-		<PanoramaRendererLayers src={LeUtils.mapToArray(readyLayers, layer => layer.src)} locationIndex={locationIndex}/>
+		<PanoramaRendererLayers src={LeUtils.mapToArray(readyLayers, layer => layer.src)} styleIndex={styleIndex} locationIndex={locationIndex}/>
 	</>);
 });

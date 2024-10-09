@@ -4,7 +4,7 @@ import {LeUtils} from '@lowentry/utils';
 import {PanoramaRenderingLayer, PanoramaRenderingLayerFullFadeTimeMs} from './PanoramaRenderingLayer.jsx';
 
 
-export const PanoramaRendererLayers = LeRed.memo(({src, locationIndex}) =>
+export const PanoramaRendererLayers = LeRed.memo(({src, styleIndex, locationIndex}) =>
 {
 	const currentLayersRef = LeRed.useRef([]);
 	const [currentLayers, setCurrentLayers] = LeRed.useState([]);
@@ -66,6 +66,14 @@ export const PanoramaRendererLayers = LeRed.memo(({src, locationIndex}) =>
 		const B = 1; // render b first, meaning it will be rendered below A
 		currentLayersRef.current.sort((a, b) =>
 		{
+			if(a.src.styleIndex !== b.src.styleIndex)
+			{
+				if(a.src.styleIndex === styleIndex)
+				{
+					return A;
+				}
+				return B;
+			}
 			if(a.src.locationIndex !== b.src.locationIndex)
 			{
 				if(a.src.locationIndex === locationIndex)
@@ -105,7 +113,7 @@ export const PanoramaRendererLayers = LeRed.memo(({src, locationIndex}) =>
 			return 0;
 		});
 		setCurrentLayers([...currentLayersRef.current]);
-	}, [src, locationIndex]);
+	}, [src, styleIndex, locationIndex]);
 	
 	
 	return (<>

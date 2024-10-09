@@ -70,7 +70,7 @@ export const getVariationJsonData = async (props) =>
 	const variationData = await fetchJsonCached(homeUrl + 'variations.json');
 	if(!variationData)
 	{
-		throw new Error('the variations.json file couldn\'t be loaded: ' + homeUrl + 'variations.json');
+		throw new Error('the variations.json file couldn\'t be load: ' + homeUrl + 'variations.json');
 	}
 	
 	return {version:homeVersion, url:homeUrl, data:variationData};

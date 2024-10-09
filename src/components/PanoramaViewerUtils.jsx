@@ -1,6 +1,7 @@
 import {LeRed} from '@lowentry/react-redux';
-import {LeUtils, ISSET} from '@lowentry/utils';
+import {LeUtils} from '@lowentry/utils';
 import {getVariationJsonData} from './utils/PanoramaVariationObtainingUtils.jsx';
+import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils';
 
 
 /**
@@ -10,22 +11,33 @@ import {getVariationJsonData} from './utils/PanoramaVariationObtainingUtils.jsx'
  * @param {string} params.homeId
  * @param {string|null} [params.homeVersion]
  * @param {string|null} [params.host]
+ * @param {string|null} [params.styleId]
  * @param {string|null} [params.locationId]
  * @returns {Promise<Object>}
  */
 export const getAvailableSkusGrouped = async (params) =>
 {
-	const {homeId, homeVersion, host, locationId} = params;
+	const {homeId, homeVersion, host, styleId:givenStyleId, locationId:givenLocationId} = params;
+	const {styleId, locationId} = getCorrectedGivenProps({styleId:givenStyleId, locationId:givenLocationId});
 	const {data:variationData} = await getVariationJsonData({homeId, homeVersion, host});
 	
+	let onlyVariationStyleIds = null;
 	let onlyVariationGroupIds = null;
-	if(ISSET(locationId))
+	if(locationId)
 	{
+		onlyVariationStyleIds = {};
 		onlyVariationGroupIds = {};
 		LeUtils.each(variationData?.locations, location =>
 		{
 			if(location?.locationId === locationId)
 			{
+				LeUtils.each(location.supportedStyleIds, styleId =>
+				{
+					if(styleId)
+					{
+						onlyVariationStyleIds[styleId] = true;
+					}
+				});
 				LeUtils.each(location.variationGroups, variationGroup =>
 				{
 					if(variationGroup?.groupId)
@@ -45,19 +57,25 @@ export const getAvailableSkusGrouped = async (params) =>
 	}
 	
 	const result = {};
-	LeUtils.each(variationData?.variationGroups, variationGroup =>
+	LeUtils.each(variationData?.styles, style =>
 	{
-		if((onlyVariationGroupIds === null) || (variationGroup?.groupId in onlyVariationGroupIds))
+		if((!styleId || (style?.styleId === styleId)) && ((onlyVariationStyleIds === null) || (style?.styleId in onlyVariationStyleIds)))
 		{
-			const variationSkus = [];
-			LeUtils.each(variationGroup?.variations, variation =>
+			LeUtils.each(style?.variationGroups, variationGroup =>
 			{
-				if(variation?.sku)
+				if((onlyVariationGroupIds === null) || (variationGroup?.groupId in onlyVariationGroupIds))
 				{
-					variationSkus.push(variation?.sku);
+					const variationSkus = result[variationGroup.groupId] ?? [];
+					LeUtils.each(variationGroup?.variations, variation =>
+					{
+						if(variation?.sku && !variationSkus.includes(variation?.sku))
+						{
+							variationSkus.push(variation?.sku);
+						}
+					});
+					result[variationGroup.groupId] = variationSkus;
 				}
 			});
-			result[variationGroup.groupId] = variationSkus;
 		}
 	});
 	return result;
@@ -70,13 +88,14 @@ export const getAvailableSkusGrouped = async (params) =>
  * @param {string} params.homeId
  * @param {string|null} [params.homeVersion]
  * @param {string|null} [params.host]
+ * @param {string|null} [params.styleId]
  * @param {string|null} [params.locationId]
  * @returns {[Object|null, boolean, string|null]}
  */
 export const useAvailableSkusGrouped = (params) =>
 {
-	const {homeId, homeVersion, host, locationId} = params;
-	return LeRed.usePromises(() => getAvailableSkusGrouped({homeId, homeVersion, host, locationId}), [homeId, homeVersion, host, locationId]);
+	const {homeId, homeVersion, host, styleId, locationId} = params;
+	return LeRed.usePromises(() => getAvailableSkusGrouped({homeId, homeVersion, host, styleId, locationId}), [homeId, homeVersion, host, styleId, locationId]);
 };
 
 
@@ -87,13 +106,14 @@ export const useAvailableSkusGrouped = (params) =>
  * @param {string} params.homeId
  * @param {string|null} [params.homeVersion]
  * @param {string|null} [params.host]
+ * @param {string|null} [params.styleId]
  * @param {string|null} [params.locationId]
  * @returns {Promise<string[]>}
  */
 export const getAvailableSkus = async (params) =>
 {
-	const {homeId, homeVersion, host, locationId} = params;
-	const skusGrouped = await getAvailableSkusGrouped({homeId, homeVersion, host, locationId});
+	const {homeId, homeVersion, host, styleId, locationId} = params;
+	const skusGrouped = await getAvailableSkusGrouped({homeId, homeVersion, host, styleId, locationId});
 	const result = [];
 	LeUtils.each(skusGrouped, skus =>
 	{
@@ -109,13 +129,14 @@ export const getAvailableSkus = async (params) =>
  * @param {string} params.homeId
  * @param {string|null} [params.homeVersion]
  * @param {string|null} [params.host]
+ * @param {string|null} [params.styleId]
  * @param {string|null} [params.locationId]
  * @returns {[string[]|null, boolean, string|null]}
  */
 export const useAvailableSkus = (params) =>
 {
-	const {homeId, homeVersion, host, locationId} = params;
-	return LeRed.usePromises(() => getAvailableSkus({homeId, homeVersion, host, locationId}), [homeId, homeVersion, host, locationId]);
+	const {homeId, homeVersion, host, styleId, locationId} = params;
+	return LeRed.usePromises(() => getAvailableSkus({homeId, homeVersion, host, styleId, locationId}), [homeId, homeVersion, host, styleId, locationId]);
 };
 
 
@@ -126,13 +147,15 @@ export const useAvailableSkus = (params) =>
  * @param {string} params.homeId
  * @param {string|null} [params.homeVersion]
  * @param {string|null} [params.host]
+ * @param {string|null} [params.styleId]
  * @returns {Promise<string[]>}
  */
 export const getAvailableLocationIds = async (params) =>
 {
-	const {homeId, homeVersion, host} = params;
+	const {homeId, homeVersion, host, styleId:givenStyleId} = params;
+	const {styleId} = getCorrectedGivenProps({styleId:givenStyleId});
 	const {data:variationData} = await getVariationJsonData({homeId, homeVersion, host});
-	return LeUtils.filter(LeUtils.mapToArray(variationData?.locations, location => location.locationId), locationId => !!locationId);
+	return LeUtils.filter(LeUtils.mapToArray(variationData?.locations, location => (!styleId && location?.supportedStyleIds?.includes(styleId)) ? STRING(location?.locationId) : null), locationId => !!locationId);
 };
 
 /**
@@ -142,10 +165,11 @@ export const getAvailableLocationIds = async (params) =>
  * @param {string} params.homeId
  * @param {string|null} [params.homeVersion]
  * @param {string|null} [params.host]
+ * @param {string|null} [params.styleId]
  * @returns {[string[]|null, boolean, string|null]}
  */
 export const useAvailableLocationIds = (params) =>
 {
-	const {homeId, homeVersion, host} = params;
-	return LeRed.usePromises(() => getAvailableLocationIds({homeId, homeVersion, host}), [homeId, homeVersion, host]);
+	const {homeId, homeVersion, host, styleId} = params;
+	return LeRed.usePromises(() => getAvailableLocationIds({homeId, homeVersion, host, styleId}), [homeId, homeVersion, host, styleId]);
 };

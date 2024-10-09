@@ -29,6 +29,20 @@ export const getVariationIndexOfVariationGroupBySku = (variationGroup, sku) =>
 	return variationIndex;
 };
 
+export const getStyleIndexByStyleId = (styles, styleId) =>
+{
+	let styleIndex = null;
+	LeUtils.each(styles, (style, index) =>
+	{
+		if(style?.styleId === styleId)
+		{
+			styleIndex = index;
+			return false;
+		}
+	});
+	return styleIndex;
+};
+
 export const getLocationIndexByLocationId = (locations, locationId) =>
 {
 	let locationIndex = null;
@@ -99,7 +113,7 @@ export const getSelectedVariationIndexesBySku = (variationGroups, skus) =>
 };
 
 
-export const getTexturePathsToRender = (variationGroups, selectedVariationIndexes, locationVariationGroups, locationIndex, homeUrl) =>
+export const getTexturePathsToRender = (variationGroups, selectedVariationIndexes, locationVariationGroups, styleIndex, locationIndex, homeUrl) =>
 {
 	if(!selectedVariationIndexes.length)
 	{
@@ -127,7 +141,7 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 			variationIndexesForLocation.push(0);
 		}
 	});
-	result.push({locationIndex, layerRenderOrder:0, basePath:homeUrl + 'img_' + locationIndex + '_' + variationIndexesForLocation.join('_')});
+	result.push({styleIndex, locationIndex, layerRenderOrder:0, basePath:homeUrl + 'img_' + styleIndex + '_' + locationIndex + '_' + variationIndexesForLocation.join('_')});
 	
 	/** add layers **/
 	LeUtils.each(variationGroups, (layerGroup, layerGroupIndex) =>
@@ -150,9 +164,9 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 				variationIndexesForLocation.push(0);
 			}
 		});
-		const colorPath = 'img_' + locationIndex + '_' + layerGroupIndex + 'c_' + variationIndexesForLocation.join('_');
-		const maskPath = 'img_' + locationIndex + '_' + layerGroupIndex + 'm_' + variationIndexesForLocation.join('_');
-		result.push({locationIndex, layerRenderOrder:(locationVariationIndex + 1), basePath:homeUrl + colorPath, maskBasePath:homeUrl + maskPath});
+		const colorPath = 'img_' + styleIndex + '_' + locationIndex + '_' + layerGroupIndex + 'c_' + variationIndexesForLocation.join('_');
+		const maskPath = 'img_' + styleIndex + '_' + locationIndex + '_' + layerGroupIndex + 'm_' + variationIndexesForLocation.join('_');
+		result.push({styleIndex, locationIndex, layerRenderOrder:(locationVariationIndex + 1), basePath:homeUrl + colorPath, maskBasePath:homeUrl + maskPath});
 	});
 	
 	return result;
