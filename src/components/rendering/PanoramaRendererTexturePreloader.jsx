@@ -7,7 +7,7 @@ import {loadMultiresTexture} from '../utils/PanoramaRendererUtils.jsx';
 import {PanoramaRenderingLayerMinimumLoadTime} from './PanoramaRenderingLayer.jsx';
 
 
-export const PanoramaRendererTexturePreloader = LeRed.memo(({src, sceneId, sceneHost, sceneUrl, locationIndex, basisTranscoderPath, setError, setLoading}) =>
+export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, homeUrl, locationIndex, basisTranscoderPath, setError, setLoading}) =>
 {
 	const {gl} = useThree();
 	
@@ -62,7 +62,7 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, sceneId, scene
 			{
 				if(level <= 0)
 				{
-					setError({canRetry:true, id:'could-not-load-scene', message:'Couldn\'t load the scene: ' + sceneId, reason:STRING(LeUtils.purgeErrorMessage(error)), data:{sceneId, sceneHost, sceneUrl}});
+					setError({canRetry:true, id:'could-not-load-home', message:'Couldn\'t load the home: ' + homeId, reason:STRING(LeUtils.purgeErrorMessage(error)), data:{homeId, host, homeUrl}});
 				}
 			};
 			const loader = loadMultiresTexture({gl, basePath:item.basePath, maskBasePath:item.maskBasePath, basisTranscoderPath, minimumLoadTime:(readyLayersRef.current.length <= 0) ? 0 : PanoramaRenderingLayerMinimumLoadTime, onLoadingLevelFail:onLoadingError});

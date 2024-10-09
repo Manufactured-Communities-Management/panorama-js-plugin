@@ -4,17 +4,18 @@ import {LeUtils} from '@lowentry/utils';
 import {PanoramaDefaultLoadingWidget} from './widgets/PanoramaDefaultLoadingWidget.jsx';
 import {PanoramaDefaultErrorWidget} from './widgets/PanoramaDefaultErrorWidget.jsx';
 import {PanoramaLoaderVariationsRetriever} from './loading/PanoramaLoaderVariationsRetriever.jsx';
-import {getCorrectedGivenProps, isSceneHostPrivate} from './utils/PanoramaPropsParsingUtils.jsx';
+import {getCorrectedGivenProps, isHostPrivate} from './utils/PanoramaPropsParsingUtils.jsx';
 
 
 /**
  * @exports
  * @typedef {Object} PanoramaViewerProps
- * @property {string} sceneId
- * @property {string|null} [sceneVersion]
- * @property {string|null} [sceneHost]
- * @property {string[]|null} [skus]
+ * @property {string} homeId
+ * @property {string|null} [homeVersion]
+ * @property {string|null} [host]
  * @property {string|null} [locationId]
+ * @property {string|null} [styleId]
+ * @property {string[]|null} [skus]
  * @property {((error:{canRetry:boolean, retry:()=>void, message:string, reason:string, id:string, data:Object})=>void)|null} [onError]
  * @property {((error:{canRetry:boolean, retry:()=>void, message:string, reason:string, id:string, data:Object})=>import('react').ReactNode)|null} [errorWidget]
  * @property {(()=>import('react').ReactNode)|null} [loadingWidget]
@@ -31,16 +32,16 @@ import {getCorrectedGivenProps, isSceneHostPrivate} from './utils/PanoramaPropsP
  * @property {number|null} [zoomSpeed]
  */
 /**
- * The PanoramaViewer component is the main component for rendering a panorama scene.
+ * The PanoramaViewer component is the main component for rendering a panoramic home.
  *
  * @component
  * @type {import('react').FunctionComponent<PanoramaViewerProps>}
  */
 export const PanoramaViewer = LeRed.memo((props) =>
 {
-	const {sceneId:givenSceneId, sceneVersion:givenSceneVersion, sceneHost:givenSceneHost, skus, locationId, onError, errorWidget, loadingWidget, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, basisTranscoderPath:givenBasisTranscoderPath, ...other} = props;
+	const {homeId:givenHomeId, homeVersion:givenHomeVersion, host:givenHost, locationId:givenLocationId, styleId:givenStyleId, onError, errorWidget, loadingWidget, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, basisTranscoderPath:givenBasisTranscoderPath, ...other} = props;
 	
-	const {sceneId, sceneVersion, sceneHost, basisTranscoderPath} = LeRed.useMemo(() => getCorrectedGivenProps({sceneId:givenSceneId, sceneVersion:givenSceneVersion, sceneHost:givenSceneHost, basisTranscoderPath:givenBasisTranscoderPath}), [givenSceneId, givenSceneVersion, givenSceneHost, givenBasisTranscoderPath]);
+	const {homeId, homeVersion, host, locationId, styleId, basisTranscoderPath} = LeRed.useMemo(() => getCorrectedGivenProps({homeId:givenHomeId, homeVersion:givenHomeVersion, host:givenHost, locationId:givenLocationId, styleId:givenStyleId, basisTranscoderPath:givenBasisTranscoderPath}), [givenHomeId, givenHomeVersion, givenHost, givenBasisTranscoderPath]);
 	const {minFov, maxFov, initialFov} = LeRed.useMemo(() => getCorrectedGivenProps({minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov}), [givenMinFov, givenMaxFov, givenInitialFov]);
 	
 	const [attemptId, setAttemptId] = LeRed.useState(LeUtils.uniqueId());
@@ -70,20 +71,29 @@ export const PanoramaViewer = LeRed.memo((props) =>
 	}, [loadingWidget]);
 	
 	
-	if(!isSceneHostPrivate(sceneHost))
+	if(!isHostPrivate(host))
 	{
-		if(!givenSceneId)
+		if(!givenHomeId)
 		{
-			return getErrorWidget({canRetry:false, id:'missing-scene-id', message:'Missing scene ID', reason:'the PanoramaViewer component was rendered without being given a valid sceneId', data:{sceneId:givenSceneId}});
+			return getErrorWidget({canRetry:false, id:'missing-home-id', message:'Missing home ID', reason:'the PanoramaViewer component was rendered without being given a valid home ID', data:{homeId:givenHomeId}});
 		}
-		if(sceneId !== givenSceneId)
+		if(homeId !== givenHomeId)
 		{
-			return getErrorWidget({canRetry:false, id:'invalid-scene-id', message:'Invalid scene ID: ' + givenSceneId, reason:'the scene ID contains invalid characters, only "a-z 0-9 _" is allowed', data:{sceneId:givenSceneId}});
+			return getErrorWidget({canRetry:false, id:'invalid-home-id', message:'Invalid home ID: ' + givenHomeId, reason:'the home ID contains invalid characters, only "a-z 0-9 _" is allowed', data:{homeId:givenHomeId}});
 		}
-		if(!sceneId)
+		if(!homeId)
 		{
-			return getErrorWidget({canRetry:false, id:'missing-scene-id', message:'Missing scene ID', reason:'the PanoramaViewer component was rendered without being given a valid sceneId', data:{sceneId:givenSceneId}});
+			return getErrorWidget({canRetry:false, id:'missing-home-id', message:'Missing home ID', reason:'the PanoramaViewer component was rendered without being given a valid home ID', data:{homeId:givenHomeId}});
 		}
+	}
+	
+	if(locationId && (locationId !== givenLocationId))
+	{
+		return getErrorWidget({canRetry:false, id:'invalid-location-id', message:'Invalid location ID: ' + givenLocationId, reason:'the location ID contains invalid characters, only "a-z 0-9 _" is allowed', data:{locationId:givenLocationId}});
+	}
+	if(styleId && (styleId !== givenStyleId))
+	{
+		return getErrorWidget({canRetry:false, id:'invalid-style-id', message:'Invalid style ID: ' + givenStyleId, reason:'the style ID contains invalid characters, only "a-z 0-9 _" is allowed', data:{styleId:givenStyleId}});
 	}
 	
 	if(!attemptId)
@@ -92,6 +102,6 @@ export const PanoramaViewer = LeRed.memo((props) =>
 	}
 	
 	return (<>
-		<PanoramaLoaderVariationsRetriever sceneId={sceneId} sceneVersion={sceneVersion} skus={skus} locationId={locationId} sceneHost={sceneHost} getErrorWidget={getErrorWidget} getLoadingWidget={getLoadingWidget} minFov={minFov} maxFov={maxFov} initialFov={initialFov} basisTranscoderPath={basisTranscoderPath} {...other}/>
+		<PanoramaLoaderVariationsRetriever homeId={homeId} homeVersion={homeVersion} host={host} locationId={locationId} styleId={styleId} basisTranscoderPath={basisTranscoderPath} minFov={minFov} maxFov={maxFov} initialFov={initialFov} getErrorWidget={getErrorWidget} getLoadingWidget={getLoadingWidget} {...other}/>
 	</>);
 });

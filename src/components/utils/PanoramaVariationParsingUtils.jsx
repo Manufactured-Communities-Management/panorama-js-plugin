@@ -99,7 +99,7 @@ export const getSelectedVariationIndexesBySku = (variationGroups, skus) =>
 };
 
 
-export const getTexturePathsToRender = (variationGroups, selectedVariationIndexes, locationVariationGroups, locationIndex, sceneUrl) =>
+export const getTexturePathsToRender = (variationGroups, selectedVariationIndexes, locationVariationGroups, locationIndex, homeUrl) =>
 {
 	if(!selectedVariationIndexes.length)
 	{
@@ -127,7 +127,7 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 			variationIndexesForLocation.push(0);
 		}
 	});
-	result.push({locationIndex, layerRenderOrder:0, basePath:sceneUrl + 'img_' + locationIndex + '_' + variationIndexesForLocation.join('_')});
+	result.push({locationIndex, layerRenderOrder:0, basePath:homeUrl + 'img_' + locationIndex + '_' + variationIndexesForLocation.join('_')});
 	
 	/** add layers **/
 	LeUtils.each(variationGroups, (layerGroup, layerGroupIndex) =>
@@ -152,7 +152,7 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 		});
 		const colorPath = 'img_' + locationIndex + '_' + layerGroupIndex + 'c_' + variationIndexesForLocation.join('_');
 		const maskPath = 'img_' + locationIndex + '_' + layerGroupIndex + 'm_' + variationIndexesForLocation.join('_');
-		result.push({locationIndex, layerRenderOrder:(locationVariationIndex + 1), basePath:sceneUrl + colorPath, maskBasePath:sceneUrl + maskPath});
+		result.push({locationIndex, layerRenderOrder:(locationVariationIndex + 1), basePath:homeUrl + colorPath, maskBasePath:homeUrl + maskPath});
 	});
 	
 	return result;

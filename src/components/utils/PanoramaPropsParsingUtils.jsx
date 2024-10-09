@@ -15,14 +15,16 @@ export const getCorrectedGivenProps = (props) =>
 		let newValue = value;
 		switch(key)
 		{
-			case 'sceneId':
+			case 'homeId':
+			case 'locationId':
+			case 'styleId':
 				newValue = STRING(value).replace(/[^a-zA-Z0-9_]+/g, '');
 				break;
-			case 'sceneVersion':
-				newValue = STRING(value || 'latest').trim().toLowerCase();
+			case 'homeVersion':
+				newValue = (STRING(value).trim() || 'latest').toLowerCase();
 				break;
-			case 'sceneHost':
-				newValue = STRING(value || 'https://d1i78mubvvqzk6.cloudfront.net').trim();
+			case 'host':
+				newValue = (STRING(value).trim() || 'https://d1i78mubvvqzk6.cloudfront.net');
 				break;
 			case 'minFov':
 				newValue = Math.max(1, FLOAT_LAX_ANY(value, 20));
@@ -36,7 +38,7 @@ export const getCorrectedGivenProps = (props) =>
 				newValue = Math.max(minFov, Math.min(maxFov, FLOAT_LAX_ANY(value, 95)));
 				break;
 			case 'basisTranscoderPath':
-				newValue = STRING_ANY(value, 'https://d11xh1fqz0z9k8.cloudfront.net/basis_transcoder/');
+				newValue = (STRING(value).trim() || 'https://d11xh1fqz0z9k8.cloudfront.net/basis_transcoder/');
 				break;
 		}
 		result[key] = newValue;
@@ -46,23 +48,23 @@ export const getCorrectedGivenProps = (props) =>
 
 
 /**
- * Returns true if the given scene host is a private URL (like localhost, 127.0.0.1, etc).
+ * Returns true if the given host is a private URL (like localhost, 127.0.0.1, etc).
  *
- * @param {string} sceneHost
+ * @param {string} host
  * @returns {boolean}
  */
-export const isSceneHostPrivate = (() =>
+export const isHostPrivate = (() =>
 {
 	const cache = {};
-	return (sceneHost) =>
+	return (host) =>
 	{
-		if(!(sceneHost in cache))
+		if(!(host in cache))
 		{
-			let sceneHostLower = sceneHost.toLowerCase().trim();
-			sceneHostLower = sceneHostLower.replace(/^[a-z]+:\/\//, '');
-			sceneHostLower = sceneHostLower.replace(/[:/].*$/, '');
-			cache[sceneHost] = LeUtils.isGivenHostPrivate(sceneHostLower);
+			let hostLower = host.toLowerCase().trim();
+			hostLower = hostLower.replace(/^[a-z]+:\/\//, '');
+			hostLower = hostLower.replace(/[:/].*$/, '');
+			cache[host] = LeUtils.isGivenHostPrivate(hostLower);
 		}
-		return cache[sceneHost];
+		return cache[host];
 	};
 })();

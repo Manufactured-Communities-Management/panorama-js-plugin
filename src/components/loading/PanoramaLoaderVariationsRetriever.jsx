@@ -5,11 +5,11 @@ import {PanoramaLoaderVariationsParser} from './PanoramaLoaderVariationsParser.j
 import {useVariationJsonData} from '../utils/PanoramaVariationObtainingUtils.jsx';
 
 
-export const PanoramaLoaderVariationsRetriever = LeRed.memo(({variations:givenVariations = undefined, sceneVersion:givenSceneVersion, ...props}) =>
+export const PanoramaLoaderVariationsRetriever = LeRed.memo(({variations:givenVariations = undefined, homeVersion:givenHomeVersion, ...props}) =>
 {
-	const {sceneId, sceneHost, getErrorWidget, getLoadingWidget} = props;
+	const {homeId, host, getErrorWidget, getLoadingWidget} = props;
 	
-	const [variations, variationsLoading, variationsError] = useVariationJsonData({sceneId, sceneVersion:givenSceneVersion, sceneHost});
+	const [variations, variationsLoading, variationsError] = useVariationJsonData({homeId, homeVersion:givenHomeVersion, host});
 	
 	
 	if(variationsLoading)
@@ -18,10 +18,10 @@ export const PanoramaLoaderVariationsRetriever = LeRed.memo(({variations:givenVa
 	}
 	if(!variations?.version || !variations?.url || !variations?.data)
 	{
-		return getErrorWidget({canRetry:true, id:'could-not-connect-to-scene', message:'Couldn\'t connect to scene: ' + sceneId, reason:STRING(variationsError), data:{sceneId, sceneVersion:givenSceneVersion, sceneHost}});
+		return getErrorWidget({canRetry:true, id:'could-not-connect-to-home', message:'Couldn\'t connect to home: ' + homeId, reason:STRING(variationsError), data:{homeId, homeVersion:givenHomeVersion, host}});
 	}
 	
 	return (<>
-		<PanoramaLoaderVariationsParser sceneVersion={STRING(variations.version)} sceneUrl={STRING(variations.url)} variations={variations.data} {...props}/>
+		<PanoramaLoaderVariationsParser homeVersion={STRING(variations.version)} homeUrl={STRING(variations.url)} variations={variations.data} {...props}/>
 	</>);
 });

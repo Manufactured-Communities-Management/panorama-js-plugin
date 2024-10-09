@@ -28,7 +28,7 @@ import {PanoramaViewer} from '@mcmhomes/panorama-viewer';
 
 ...
 
-<PanoramaViewer sceneId="xxxxxxxxx"/>
+<PanoramaViewer homeId="xxxxxxxxx"/>
 ```
 
 The `PanoramaViewer` component can be found in the [PanoramaViewer.jsx](https://github.com/Manufactured-Communities-Management/panorama-js-plugin/blob/master/src/components/PanoramaViewer.jsx) file.
@@ -53,7 +53,7 @@ To create panorama pictures, the following steps are taken:
     - this will cause the ready-to-use panorama pictures (KTX2s) to be created
 3. Optionally, to use the pictures in production, the ready-to-use panorama pictures will have to be upload to the MCM Panorama S3 bucket.
     - the Docker script will also take care of this, more info down below
-    - the panorama pictures can then be viewed at `https://d11xh1fqz0z9k8.cloudfront.net/?a=xxxxxxxxx`, where `xxxxxxxxx` is the scene ID (the scene ID is configured in Unreal)
+    - the panorama pictures can then be viewed at `https://d11xh1fqz0z9k8.cloudfront.net/?a=xxxxxxxxx`, where `xxxxxxxxx` is the home ID (the home ID is configured in Unreal)
 
 
 ## Docker script

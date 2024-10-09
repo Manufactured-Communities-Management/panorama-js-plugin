@@ -113,9 +113,9 @@ def process_image(filepath):
 
 
 def action():
-    # Get the scene ID
-    scene_id = str(get_json_field(join(input_folder, 'variations.json'), 'sceneId'))
-    print('Scene ID:', scene_id)
+    # Get the home ID
+    home_id = str(get_json_field(join(input_folder, 'variations.json'), 'homeId'))
+    print('Home ID:', home_id)
 
     # Configure S3 and verify access
     print()
@@ -163,8 +163,8 @@ def action():
 
     # Push to S3
     if not ((aws_access_key_id.lower() == 'test') and (aws_secret_access_key.lower() == 'test')):
-        scene_version = str(round(time.time() * 1000))
-        s3folder = scene_id + '/' + scene_version
+        home_version = str(round(time.time() * 1000))
+        s3folder = home_id + '/' + home_version
         print()
         print('Pushing to S3... Bucket ID: "' + s3folder + '"')
         print()
@@ -174,19 +174,19 @@ def action():
             include_args.append('*.' + file_output_format)
         aws('s3', 'sync', '.', 's3://panorama-cloud-storage/' + s3folder + '/', '--exclude', '*', *include_args, '--include', '*.json', '--delete', '--cache-control', 'max-age=3600,s-maxage=3600')
         with tempfile.NamedTemporaryFile(mode='w+', suffix='.json') as f:
-            json.dump({'version': scene_version}, f)
+            json.dump({'version': home_version}, f)
             f.flush()
-            aws('s3', 'cp', f.name, 's3://panorama-cloud-storage/' + scene_id + '/latest.json', '--cache-control', 'max-age=0,s-maxage=3600,must-revalidate')
+            aws('s3', 'cp', f.name, 's3://panorama-cloud-storage/' + home_id + '/latest.json', '--cache-control', 'max-age=0,s-maxage=3600,must-revalidate')
         print()
         print('Pushed to S3! Bucket ID: "' + s3folder + '"')
         print()
         print('Invalidating CloudFront cache...')
-        aws('cloudfront', 'create-invalidation', '--distribution-id', 'E2LL3J30WWH8R7', '--paths', '/' + s3folder + '/*', '/' + scene_id + '/latest.json')
+        aws('cloudfront', 'create-invalidation', '--distribution-id', 'E2LL3J30WWH8R7', '--paths', '/' + s3folder + '/*', '/' + home_id + '/latest.json')
         print('Invalidated CloudFront cache!')
         # Done
         print()
         print('Done!')
-        print('Test at: https://d11xh1fqz0z9k8.cloudfront.net/?a=' + scene_id)
+        print('Test at: https://d11xh1fqz0z9k8.cloudfront.net/?a=' + home_id)
     else:
         # Done
         print()

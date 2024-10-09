@@ -1,6 +1,6 @@
 import {LeRed} from '@lowentry/react-redux';
 import {LeUtils, STRING} from '@lowentry/utils';
-import {getCorrectedGivenProps, isSceneHostPrivate} from './PanoramaPropsParsingUtils.jsx';
+import {getCorrectedGivenProps, isHostPrivate} from './PanoramaPropsParsingUtils.jsx';
 
 
 /**
@@ -34,61 +34,61 @@ const fetchJsonCached = (() =>
 /**
  * Returns the variation JSON data.
  *
- * If sceneVersion is 'latest' (or null, or undefined), it will first fetch the latest version from the scene.
+ * If homeVersion is 'latest' (or null, or undefined), it will first fetch the latest version from the home.
  *
  * @param {Object} props
- * @param {string} props.sceneId
- * @param {string|null} [props.sceneVersion]
- * @param {string|null} [props.sceneHost]
+ * @param {string} props.homeId
+ * @param {string|null} [props.homeVersion]
+ * @param {string|null} [props.host]
  * @returns {Promise<{version:string, url:string, data:Object}>}
  */
 export const getVariationJsonData = async (props) =>
 {
-	const {sceneId:givenSceneId, sceneVersion:givenSceneVersion, sceneHost:givenSceneHost} = props;
-	let {sceneId, sceneVersion, sceneHost} = getCorrectedGivenProps({sceneId:givenSceneId, sceneVersion:givenSceneVersion, sceneHost:givenSceneHost});
+	const {homeId:givenHomeId, homeVersion:givenHomeVersion, host:givenHost} = props;
+	let {homeId, homeVersion, host} = getCorrectedGivenProps({homeId:givenHomeId, homeVersion:givenHomeVersion, host:givenHost});
 	
-	let sceneUrl;
-	if(isSceneHostPrivate(sceneHost))
+	let homeUrl;
+	if(isHostPrivate(host))
 	{
-		sceneVersion = 'latest';
-		sceneUrl = sceneHost + (sceneHost.endsWith('/') ? '' : '/');
+		homeVersion = 'latest';
+		homeUrl = host + (host.endsWith('/') ? '' : '/');
 	}
 	else
 	{
-		if(sceneVersion === 'latest')
+		if(homeVersion === 'latest')
 		{
-			const latestData = await fetchJsonCached(sceneHost + '/' + sceneId + '/latest.json');
+			const latestData = await fetchJsonCached(host + '/' + homeId + '/latest.json');
 			if(!latestData || !latestData?.version)
 			{
-				throw new Error('the latest.json file doesn\'t contain a version number: ' + sceneHost + '/' + sceneId + '/latest.json');
+				throw new Error('the latest.json file doesn\'t contain a version number: ' + host + '/' + homeId + '/latest.json');
 			}
-			sceneVersion = latestData.version;
+			homeVersion = latestData.version;
 		}
-		sceneUrl = sceneHost + '/' + sceneId + '/' + sceneVersion + '/';
+		homeUrl = host + '/' + homeId + '/' + homeVersion + '/';
 	}
 	
-	const variationData = await fetchJsonCached(sceneUrl + 'variations.json');
+	const variationData = await fetchJsonCached(homeUrl + 'variations.json');
 	if(!variationData)
 	{
-		throw new Error('the variations.json file couldn\'t be loaded: ' + sceneUrl + 'variations.json');
+		throw new Error('the variations.json file couldn\'t be loaded: ' + homeUrl + 'variations.json');
 	}
 	
-	return {version:sceneVersion, url:sceneUrl, data:variationData};
+	return {version:homeVersion, url:homeUrl, data:variationData};
 };
 
 /**
  * Returns the variation JSON data.
  *
- * If sceneVersion is 'latest' (or null, or undefined), it will first fetch the latest version from the scene.
+ * If homeVersion is 'latest' (or null, or undefined), it will first fetch the latest version from the home.
  *
  * @param {Object} props
- * @param {string} props.sceneId
- * @param {string|null} [props.sceneVersion]
- * @param {string|null} [props.sceneHost]
+ * @param {string} props.homeId
+ * @param {string|null} [props.homeVersion]
+ * @param {string|null} [props.host]
  * @returns [{version:string, url:string, data:Object}|null, boolean, string|null]
  */
 export const useVariationJsonData = (props) =>
 {
-	const {sceneId, sceneVersion, sceneHost} = props;
-	return LeRed.usePromises(() => getVariationJsonData({sceneId, sceneVersion, sceneHost}), [sceneId, sceneVersion, sceneHost]);
+	const {homeId, homeVersion, host} = props;
+	return LeRed.usePromises(() => getVariationJsonData({homeId, homeVersion, host}), [homeId, homeVersion, host]);
 };
