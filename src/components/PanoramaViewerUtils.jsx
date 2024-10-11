@@ -1,7 +1,7 @@
 import {LeRed} from '@lowentry/react-redux';
 import {LeUtils, STRING} from '@lowentry/utils';
 import {getVariationJsonData} from './utils/PanoramaVariationObtainingUtils.jsx';
-import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils';
+import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils.jsx';
 
 
 /**

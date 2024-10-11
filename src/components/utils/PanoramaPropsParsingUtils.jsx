@@ -1,4 +1,4 @@
-import {LeUtils, FLOAT_LAX_ANY, STRING, STRING_ANY} from '@lowentry/utils';
+import {LeUtils, FLOAT_LAX_ANY, STRING} from '@lowentry/utils';
 
 
 /**
