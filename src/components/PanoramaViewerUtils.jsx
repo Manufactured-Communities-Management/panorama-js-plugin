@@ -156,7 +156,7 @@ export const getAvailableStyleIds = async (params) =>
 	const {locationId} = getCorrectedGivenProps({locationId:givenLocationId});
 	const {data:variationData} = await getVariationJsonData({homeId, homeVersion, host});
 	const location = LeUtils.find(variationData?.locations, location => location?.locationId === locationId);
-	return LeUtils.filter(LeUtils.mapToArray(variationData?.styles, style => (!location || LeUtils.contains(location?.supportedStyleIds, style?.styleId)) ? STRING(style?.styleId) : null), styleId => !!styleId);
+	return LeUtils.filter(LeUtils.mapToArray(variationData?.styles, style => (!location || LeUtils.contains(location?.supportedStyleIds, style?.styleId)) ? STRING(style?.styleId) : null));
 };
 
 /**
@@ -191,7 +191,7 @@ export const getAvailableLocationIds = async (params) =>
 	const {homeId, homeVersion, host, styleId:givenStyleId} = params;
 	const {styleId} = getCorrectedGivenProps({styleId:givenStyleId});
 	const {data:variationData} = await getVariationJsonData({homeId, homeVersion, host});
-	return LeUtils.filter(LeUtils.mapToArray(variationData?.locations, location => (!styleId || LeUtils.contains(location?.supportedStyleIds, styleId)) ? STRING(location?.locationId) : null), locationId => !!locationId);
+	return LeUtils.filter(LeUtils.mapToArray(variationData?.locations, location => (!styleId || LeUtils.contains(location?.supportedStyleIds, styleId)) ? STRING(location?.locationId) : null));
 };
 
 /**
