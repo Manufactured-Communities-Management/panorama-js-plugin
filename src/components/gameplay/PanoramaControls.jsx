@@ -1,15 +1,19 @@
 import {LeRed} from '@lowentry/react-redux';
-import {LeUtils, FLOAT_LAX_ANY} from '@lowentry/utils';
+import {LeUtils, FLOAT_LAX_ANY, ISSET} from '@lowentry/utils';
 import {MathUtils} from 'three';
 import {useThree} from '@react-three/fiber';
 
 
 export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged, lookSpeed:givenLookSpeed, lookSpeedX:givenLookSpeedX, lookSpeedY:givenLookSpeedY, zoomSpeed:givenZoomSpeed}) =>
 {
+	const CUBEMAP_YAW_OFFSET = 90;
+	
 	const ROTATION_SPEED = 0.0012;
-	const ROTATION_DRAG_WHEN_SLIDING = 0.05;
-	const ROTATION_DRAG_WHEN_DRAGGING = 0.3;
+	const ROTATION_SLIDING_DISTANCE = 60;
+	const ROTATION_DRAG_WHEN_SLIDING = 0.95393;
+	const ROTATION_DRAG_WHEN_DRAGGING = 0.9999999995;
 	const FOV_SCROLL_SPEED = 0.05;
+	const ROTATION_ANIMATION_SPEED = 2;
 	
 	
 	const lookSpeed = LeRed.useRef();
@@ -27,11 +31,15 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	cameraMaxFov.current = FLOAT_LAX_ANY(maxFov, 179);
 	const clampFov = (fov) => Math.min(cameraMaxFov.current, Math.max(cameraMinFov.current, FLOAT_LAX_ANY(fov, 90)));
 	
+	const onCameraRotationChangedRef = LeRed.useRef();
+	onCameraRotationChangedRef.current = onCameraRotationChanged;
+	
 	const {gl, camera, invalidate} = useThree();
 	const isDragging = LeRed.useRef(false);
 	const startMousePosition = LeRed.useRef({x:0, y:0});
-	const startCameraRotation = LeRed.useRef({yaw:FLOAT_LAX_ANY(initialCameraRotation?.yaw, 0), pitch:FLOAT_LAX_ANY(initialCameraRotation?.pitch, 0)});
-	const cameraRotation = LeRed.useRef(LeUtils.clone(startCameraRotation.current));
+	const startCameraRotation = LeRed.useRef();
+	const cameraRotation = LeRed.useRef();
+	const cameraRotationGoal = LeRed.useRef();
 	const lastCameraRotationCallbackParams = LeRed.useRef();
 	const cameraRotationSpeed = LeRed.useRef({yaw:0, pitch:0});
 	const cameraFov = LeRed.useRef(clampFov(initialFov));
@@ -39,10 +47,44 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	const cameraFovRotationSpeedMultiplier = () => (cameraFov.current / 90);
 	
 	
+	const setInitialCameraRotation = (rotation, instant) =>
+	{
+		const newRotation = {yaw:MathUtils.degToRad(FLOAT_LAX_ANY(rotation?.yaw, 0) - CUBEMAP_YAW_OFFSET), pitch:MathUtils.clamp(MathUtils.degToRad(FLOAT_LAX_ANY(rotation?.pitch, 0)), -Math.PI / 2, Math.PI / 2)};
+		if(instant)
+		{
+			cameraRotation.current = newRotation;
+			cameraRotationGoal.current = null;
+		}
+		else
+		{
+			cameraRotationGoal.current = newRotation;
+		}
+		isDragging.current = false;
+		cameraRotationSpeed.current = {yaw:0, pitch:0};
+	};
+	
+	LeRed.useEffect(() =>
+	{
+		setInitialCameraRotation(initialCameraRotation, true);
+	}, []);
+	
+	LeRed.useEffect(() =>
+	{
+		if(ISSET(initialCameraRotation))
+		{
+			setInitialCameraRotation(initialCameraRotation);
+		}
+	}, [initialCameraRotation]);
+	
+	
 	const handleMouseDown = LeRed.useCallback((event) =>
 	{
 		event.stopPropagation?.();
 		event.preventDefault?.();
+		if(cameraRotationGoal.current)
+		{
+			return;
+		}
 		if(event.touches)
 		{
 			if(event.touches.length > 1)
@@ -89,8 +131,8 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 			pitch:MathUtils.clamp(startCameraRotation.current.pitch + (deltaY * ROTATION_SPEED * lookSpeed.current * lookSpeedY.current * cameraFovRotationSpeedMultiplier()), -Math.PI / 2, Math.PI / 2),
 		};
 		cameraRotationSpeed.current = {
-			yaw:  newCameraRotation.yaw - cameraRotation.current.yaw,
-			pitch:newCameraRotation.pitch - cameraRotation.current.pitch,
+			yaw:  (newCameraRotation.yaw - cameraRotation.current.yaw) * ROTATION_SLIDING_DISTANCE,
+			pitch:(newCameraRotation.pitch - cameraRotation.current.pitch) * ROTATION_SLIDING_DISTANCE,
 		};
 		cameraRotation.current = newCameraRotation;
 	}, []);
@@ -112,30 +154,53 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	}, []);
 	
 	
-	LeRed.useEffectAnimationFrameInterval(() =>
+	LeRed.useEffectAnimationFrameInterval(deltaTime =>
 	{
+		deltaTime = Math.min(0.33, deltaTime); // at least 3 FPS  -  this is to prevent odd behavior (like when the tab is inactive for a long time)
+		
+		if(cameraRotationGoal.current)
+		{
+			let yawDiff = (MathUtils.radToDeg(cameraRotationGoal.current.yaw) - MathUtils.radToDeg(cameraRotation.current.yaw) + 360000) % 360;
+			if(yawDiff > 180)
+			{
+				yawDiff -= 360;
+			}
+			yawDiff = MathUtils.degToRad(yawDiff);
+			let pitchDiff = (cameraRotationGoal.current.pitch - cameraRotation.current.pitch);
+			
+			const distance = Math.sqrt((yawDiff * yawDiff) + (pitchDiff * pitchDiff));
+			const applyDistance = Math.max(distance, 0.0001) * deltaTime * ROTATION_ANIMATION_SPEED;
+			
+			if(applyDistance >= (distance - 0.8))
+			{
+				cameraRotationSpeed.current = {yaw:yawDiff * 3, pitch:pitchDiff * 3};
+				cameraRotationGoal.current = null;
+			}
+			else
+			{
+				const applyDistanceMultiplier = applyDistance / distance;
+				cameraRotation.current = {
+					yaw:  cameraRotation.current.yaw + (yawDiff * applyDistanceMultiplier),
+					pitch:cameraRotation.current.pitch + (pitchDiff * applyDistanceMultiplier),
+				};
+			}
+		}
+		
 		if(!isDragging.current)
 		{
 			cameraRotation.current = {
-				yaw:  cameraRotation.current.yaw + cameraRotationSpeed.current.yaw,
-				pitch:MathUtils.clamp(cameraRotation.current.pitch + cameraRotationSpeed.current.pitch, -Math.PI / 2, Math.PI / 2),
+				yaw:  cameraRotation.current.yaw + (cameraRotationSpeed.current.yaw * deltaTime),
+				pitch:MathUtils.clamp(cameraRotation.current.pitch + (cameraRotationSpeed.current.pitch * deltaTime), -Math.PI / 2, Math.PI / 2),
 			};
-			cameraRotationSpeed.current.yaw *= (1 - ROTATION_DRAG_WHEN_SLIDING);
-			cameraRotationSpeed.current.pitch *= (1 - ROTATION_DRAG_WHEN_SLIDING);
+			const drag = Math.pow(1 - ROTATION_DRAG_WHEN_SLIDING, deltaTime);
+			cameraRotationSpeed.current.yaw *= drag;
+			cameraRotationSpeed.current.pitch *= drag;
 		}
 		else
 		{
-			cameraRotationSpeed.current.yaw *= 1 - ROTATION_DRAG_WHEN_DRAGGING;
-			cameraRotationSpeed.current.pitch *= 1 - ROTATION_DRAG_WHEN_DRAGGING;
-		}
-		
-		if(Math.abs(cameraRotationSpeed.current.yaw) < 0.0001)
-		{
-			cameraRotationSpeed.current.yaw = 0;
-		}
-		if(Math.abs(cameraRotationSpeed.current.pitch) < 0.0001)
-		{
-			cameraRotationSpeed.current.pitch = 0;
+			const drag = Math.pow(1 - ROTATION_DRAG_WHEN_DRAGGING, deltaTime);
+			cameraRotationSpeed.current.yaw *= drag;
+			cameraRotationSpeed.current.pitch *= drag;
 		}
 		
 		if((cameraRotation.current.yaw !== camera.rotation.y) || (cameraRotation.current.pitch !== camera.rotation.x))
@@ -145,11 +210,27 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 			camera.rotation.x = cameraRotation.current.pitch;
 			invalidate();
 			
-			const roundedRotation = {yaw:Math.round(cameraRotation.current.yaw * 1000) / 1000, pitch:Math.round(cameraRotation.current.pitch * 1000) / 1000};
-			if(!LeUtils.equals(lastCameraRotationCallbackParams.current, roundedRotation))
+			if(onCameraRotationChangedRef.current)
 			{
-				lastCameraRotationCallbackParams.current = roundedRotation;
-				onCameraRotationChanged?.(LeUtils.clone(roundedRotation));
+				let yaw = MathUtils.radToDeg(cameraRotation.current.yaw);
+				let pitch = MathUtils.radToDeg(cameraRotation.current.pitch);
+				
+				yaw += CUBEMAP_YAW_OFFSET;
+				while(yaw < 0)
+				{
+					yaw += 360;
+				}
+				yaw %= 360;
+				
+				yaw = Math.round(yaw * 1000) / 1000;
+				pitch = Math.round(pitch * 1000) / 1000;
+				
+				const roundedRotation = {yaw, pitch};
+				if(!LeUtils.equals(lastCameraRotationCallbackParams.current, roundedRotation))
+				{
+					lastCameraRotationCallbackParams.current = roundedRotation;
+					onCameraRotationChangedRef.current?.({yaw, pitch});
+				}
 			}
 		}
 		
