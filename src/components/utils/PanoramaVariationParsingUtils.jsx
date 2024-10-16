@@ -44,7 +44,7 @@ export const getSelectedVariationIndexesBySku = (variationGroups, skus) =>
 			}
 			else
 			{
-				console.warn('[PanoramaViewer] Group ID not found:', groupId);
+				console.warn('[PanoramaViewer] SKU Group ID not found:', groupId);
 			}
 		});
 	}

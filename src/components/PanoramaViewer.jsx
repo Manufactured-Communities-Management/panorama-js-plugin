@@ -13,8 +13,8 @@ import {getCorrectedGivenProps, isHostPrivate} from './utils/PanoramaPropsParsin
  * @property {string} homeId
  * @property {string|null} [homeVersion]
  * @property {string|null} [host]
- * @property {string|null} [locationId]
  * @property {string|null} [styleId]
+ * @property {string|null} [locationId]
  * @property {string[]|null} [skus]
  * @property {((error:{canRetry:boolean, retry:()=>void, message:string, reason:string, id:string, data:Object})=>void)|null} [onError]
  * @property {((error:{canRetry:boolean, retry:()=>void, message:string, reason:string, id:string, data:Object})=>import('react').ReactNode)|null} [errorWidget]
