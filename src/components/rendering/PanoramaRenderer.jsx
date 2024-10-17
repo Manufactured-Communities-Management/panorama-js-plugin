@@ -16,7 +16,7 @@ const FADEOUT_DURATION_DECAY_FACTOR = Math.pow(0.01, 1 / (FADEOUT_DURATION_MS / 
 const FADEOUT_DURATION_LINEAR = false;
 
 
-export const PanoramaRenderer = LeRed.memo((props) =>
+export const PanoramaRenderer = LeRed.memo(({initialFov:givenInitialFov, onFovChanged:givenOnFovChanged, ...props}) =>
 {
 	const {getErrorWidget, getLoadingWidget} = props;
 	
@@ -26,6 +26,24 @@ export const PanoramaRenderer = LeRed.memo((props) =>
 	const [error, setError] = LeRed.useState(null);
 	
 	const layersRef = LeRed.useRef([]);
+	
+	const [initialFov, setInitialFov] = LeRed.useState(null);
+	
+	
+	const onFovChanged = LeRed.useCallback(newFov =>
+	{
+		setInitialFov(newFov);
+		givenOnFovChanged?.(newFov);
+	}, [givenOnFovChanged]);
+	
+	
+	LeRed.useEffect(() =>
+	{
+		if(givenInitialFov)
+		{
+			setInitialFov(givenInitialFov);
+		}
+	}, [givenInitialFov]);
 	
 	
 	LeRed.useMemo(() =>
@@ -86,7 +104,7 @@ export const PanoramaRenderer = LeRed.memo((props) =>
 		{!!initialLoading && getLoadingWidget()}
 		<div style={{position:'relative', width:'100%', height:'100%', overflow:'hidden', ...(!initialLoading ? {} : {width:'1px', height:'1px', opacity:'0'})}}>
 			{LeUtils.mapToArray(layersRef.current, layer => (
-				<PanoramaRendererAtLocation {...layer.givenProps} {...layer.props}/>
+				<PanoramaRendererAtLocation {...layer.givenProps} {...layer.props} initialFov={initialFov} onFovChanged={onFovChanged}/>
 			))}
 		</div>
 	</>);
@@ -104,6 +122,7 @@ const PanoramaRendererAtLocation = LeRed.memo(({loading, setLoading, setError, s
 	const opacityRef = LeRed.useRef();
 	opacityRef.current = opacity;
 	
+	
 	const initialCameraRotation = LeRed.useMemo(() =>
 	{
 		if(ISSET(givenInitialCameraRotation?.yaw) && ISSET(givenInitialCameraRotation?.pitch))
@@ -117,6 +136,7 @@ const PanoramaRendererAtLocation = LeRed.memo(({loading, setLoading, setError, s
 		}
 		return {yaw:FLOAT_LAX(location?.recommendedRotation?.yaw), pitch:FLOAT_LAX(location?.recommendedRotation?.pitch)};
 	}, [givenInitialCameraRotation, variations?.locations?.[locationIndex]]);
+	
 	
 	const onCameraRotationChanged = LeRed.useCallback(newRotation =>
 	{
