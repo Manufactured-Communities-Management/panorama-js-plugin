@@ -2,24 +2,36 @@ import {LeRed} from '@lowentry/react-redux';
 import {LeUtils, ISSET, FLOAT_LAX, FLOAT_LAX_ANY} from '@lowentry/utils';
 
 
-export const useFadeoutAnimation = ({visible, delay, duration, decayFactor, ...deps}) =>
+export const useFadeoutAnimation = (params) =>
 {
+	const {visible, delay, duration, decayFactor} = params;
+	
 	const opacityRef = LeRed.useRef(1);
 	const [opacity, setOpacity] = LeRed.useState(1);
+	
+	const delayTimePassedRef = LeRed.useRef(0);
 	
 	
 	LeRed.useEffect(() =>
 	{
 		if(visible)
 		{
+			delayTimePassedRef.current = 0;
 			opacityRef.current = 1;
 			setOpacity(1);
 			return;
 		}
+		if(opacityRef.current <= 0)
+		{
+			return;
+		}
 		
 		let timer = null;
+		const startTime = performance.now();
+		
 		const stopTimer = () =>
 		{
+			delayTimePassedRef.current += performance.now() - startTime;
 			try
 			{
 				timer?.remove();
@@ -62,10 +74,10 @@ export const useFadeoutAnimation = ({visible, delay, duration, decayFactor, ...d
 					stopTimer();
 				}
 			});
-		}, delay ?? 0);
+		}, Math.max(0, (delay ?? 0) - delayTimePassedRef.current));
 		
 		return stopTimer;
-	}, [visible, duration, decayFactor, deps]);
+	}, [visible, delay, duration, decayFactor]);
 	
 	
 	return {opacity};

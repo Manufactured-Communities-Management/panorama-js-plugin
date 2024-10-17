@@ -49,7 +49,7 @@ export const PanoramaRenderingLayer = LeRed.memo(({src, visible, renderOrder}) =
 
 const PanoramaRenderingLayerResolution = LeRed.memo(({src, visible, fadeoutDuration, fadeoutDecayFactor, renderOrder, textures, maskTextures}) =>
 {
-	const {opacity} = useFadeoutAnimation({src, visible, duration:fadeoutDuration, decayFactor:fadeoutDecayFactor});
+	const {opacity} = useFadeoutAnimation({visible, duration:fadeoutDuration, decayFactor:fadeoutDecayFactor});
 	
 	
 	if(opacity <= 0)
