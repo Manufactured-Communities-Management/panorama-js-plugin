@@ -45,6 +45,7 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, 
 			}
 			
 			/** removed, dispose **/
+			layer.removed = true;
 			currentLayersRef.current = currentLayersRef.current.filter(item => (item.key !== layer.key));
 			
 			/** if not in readyLayers, dispose textures now **/
@@ -58,9 +59,10 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, 
 		/** add new layers **/
 		LeUtils.each(newSrc, (item, basePath) =>
 		{
+			let layer = {key:LeUtils.uniqueId()};
 			const onLoadingError = ({level, error}) =>
 			{
-				if(level <= 0)
+				if(!layer.removed && (level <= 0))
 				{
 					setError({canRetry:true, id:'could-not-load-home', message:'Couldn\'t load the home: ' + homeId, reason:STRING(LeUtils.purgeErrorMessage(error)), data:{homeId, host, homeUrl}});
 				}
@@ -68,7 +70,8 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, 
 			const loader = loadMultiresTexture({gl, basePath:item.basePath, maskBasePath:item.maskBasePath, basisTranscoderPath, minimumLoadTime:(readyLayersRef.current.length <= 0) ? 0 : PanoramaRenderingLayerMinimumLoadTime, onLoadingLevelFail:onLoadingError});
 			if(loader)
 			{
-				currentLayersRef.current.push({key:LeUtils.uniqueId(), src:{...item, ...loader}});
+				layer.src = {...item, ...loader};
+				currentLayersRef.current.push(layer);
 			}
 		});
 		
@@ -106,6 +109,24 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, 
 	{
 		setLoading((readyLayers.length <= 0));
 	}, [(readyLayers.length <= 0)]);
+	
+	
+	LeRed.useEffect(() =>
+	{
+		return () =>
+		{
+			/** cleanup **/
+			LeUtils.each(currentLayersRef.current, (layer, index) =>
+			{
+				layer.removed = true;
+				layer.src.dispose();
+			});
+			currentLayersRef.current = [];
+			readyLayersRef.current = [];
+			setCurrentLayers([]);
+			setReadyLayers([]);
+		};
+	}, []);
 	
 	
 	if(readyLayers.length <= 0)

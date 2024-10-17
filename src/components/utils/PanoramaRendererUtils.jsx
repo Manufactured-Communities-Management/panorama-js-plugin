@@ -261,6 +261,10 @@ export const loadMultiresTexture = (params) =>
 	{
 		try
 		{
+			if(cancel)
+			{
+				return;
+			}
 			if(!ISSET(textures[level]))
 			{
 				// no more levels
@@ -270,8 +274,32 @@ export const loadMultiresTexture = (params) =>
 			newLoadedTextures = loadTextures({gl, textures:textures[level], basisTranscoderPath});
 			newLoadedMaskTextures = !maskTextures ? null : loadTextures({gl, textures:maskTextures[level], basisTranscoderPath});
 			
-			newLoadedTextures = await newLoadedTextures;
-			newLoadedMaskTextures = await newLoadedMaskTextures;
+			let error = null;
+			{
+				try
+				{
+					newLoadedTextures = await newLoadedTextures;
+				}
+				catch(e)
+				{
+					newLoadedTextures = null;
+					error = e;
+				}
+				try
+				{
+					newLoadedMaskTextures = await newLoadedMaskTextures;
+				}
+				catch(e)
+				{
+					newLoadedMaskTextures = null;
+					error = e;
+				}
+			}
+			if(error)
+			{
+				dispose(newLoadedTextures, newLoadedMaskTextures);
+				throw error;
+			}
 			if(cancel)
 			{
 				dispose(newLoadedTextures, newLoadedMaskTextures);
@@ -307,6 +335,10 @@ export const loadMultiresTexture = (params) =>
 		}
 		catch(e)
 		{
+			if(cancel)
+			{
+				return;
+			}
 			if(attempt <= 3)
 			{
 				await LeUtils.promiseTimeout(500);
