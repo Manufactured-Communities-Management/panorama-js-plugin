@@ -16,13 +16,13 @@ export const PanoramaLoaderVariationsParser = ({src = undefined, styleIndex:give
 		return getErrorWidget({canRetry:false, id:'could-not-connect-to-home', message:'Couldn\'t connect to home: ' + homeId, reason:'the home data isn\'t compatible with our frontend, it doesn\'t contain the information that should be in there', data:{homeId, host, homeUrl, variations}});
 	}
 	
-	const styleIndex = LeRed.useMemo(() => styleId ? LeUtils.findIndex(styles, style => style?.styleId === styleId) : 0, [styles, styleId]);
+	const styleIndex = LeRed.useMemo(() => styleId ? LeUtils.findIndex(styles, style => (style?.styleId === styleId)) : 0, [styles, styleId]);
 	if(!ISSET(styleIndex) || !(styleIndex in styles))
 	{
 		return getErrorWidget({canRetry:false, id:'invalid-style-id', message:'Invalid style ID: ' + styleId, reason:'the style ID doesn\'t exist in the home', data:{homeId, host, homeUrl, variations, styleId}});
 	}
 	
-	const locationIndex = LeRed.useMemo(() => locationId ? LeUtils.findIndex(locations, location => location?.locationId === locationId) : 0, [locations, locationId]);
+	const locationIndex = LeRed.useMemo(() => locationId ? LeUtils.findIndex(locations, location => (location?.locationId === locationId)) : 0, [locations, locationId]);
 	if(!ISSET(locationIndex) || !(locationIndex in locations))
 	{
 		return getErrorWidget({canRetry:false, id:'invalid-location-id', message:'Invalid location ID: ' + locationId, reason:'the location ID doesn\'t exist in the home', data:{homeId, host, homeUrl, variations, locationId}});

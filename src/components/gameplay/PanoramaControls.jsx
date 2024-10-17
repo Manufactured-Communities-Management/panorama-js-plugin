@@ -36,6 +36,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	
 	const {gl, camera, invalidate} = useThree();
 	const isDragging = LeRed.useRef(false);
+	const lastMousePosition = LeRed.useRef({x:0, y:0});
 	const startMousePosition = LeRed.useRef({x:0, y:0});
 	const startCameraRotation = LeRed.useRef();
 	const cameraRotation = LeRed.useRef();
@@ -45,6 +46,13 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	const cameraFov = LeRed.useRef(clampFov(initialFov));
 	const lastCameraFovCallbackParams = LeRed.useRef();
 	const cameraFovRotationSpeedMultiplier = () => (cameraFov.current / 90);
+	
+	
+	LeRed.useMemo(() =>
+	{
+		startMousePosition.current = lastMousePosition.current;
+		startCameraRotation.current = cameraRotation.current;
+	}, [lookSpeed.current, lookSpeedX.current, lookSpeedY.current]);
 	
 	
 	const setInitialCameraRotation = (rotation, instant) =>
@@ -100,6 +108,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 			event = event.touches[0];
 		}
 		isDragging.current = true;
+		lastMousePosition.current = {x:event.clientX, y:event.clientY};
 		startMousePosition.current = {x:event.clientX, y:event.clientY};
 		startCameraRotation.current = {yaw:cameraRotation.current.yaw, pitch:cameraRotation.current.pitch};
 	}, []);
@@ -124,6 +133,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 			}
 			event = event.touches[0];
 		}
+		lastMousePosition.current = {x:event.clientX, y:event.clientY};
 		const deltaX = event.clientX - startMousePosition.current.x;
 		const deltaY = event.clientY - startMousePosition.current.y;
 		const newCameraRotation = {

@@ -155,7 +155,7 @@ export const getAvailableStyleIds = async (params) =>
 	const {homeId, homeVersion, host, locationId:givenLocationId} = params;
 	const {locationId} = getCorrectedGivenProps({locationId:givenLocationId});
 	const {data:variationData} = await getVariationJsonData({homeId, homeVersion, host});
-	const location = LeUtils.find(variationData?.locations, location => location?.locationId === locationId);
+	const location = LeUtils.find(variationData?.locations, location => (location?.locationId === locationId));
 	return LeUtils.filter(LeUtils.mapToArray(variationData?.styles, style => (!location || LeUtils.contains(location?.supportedStyleIds, style?.styleId)) ? STRING(style?.styleId) : null));
 };
 
@@ -208,48 +208,6 @@ export const useAvailableLocationIds = (params) =>
 {
 	const {homeId, homeVersion, host, styleId} = params;
 	return LeRed.usePromises(() => getAvailableLocationIds({homeId, homeVersion, host, styleId}), [homeId, homeVersion, host, styleId]);
-};
-
-
-/**
- * Returns the recommended rotation for the given location.
- * If the location cannot be found, the recommended rotation will be {yaw:0, pitch:0}.
- *
- * @param {Object} params
- * @param {string} params.homeId
- * @param {string|null} [params.homeVersion]
- * @param {string|null} [params.host]
- * @param {string|null} [params.locationId]
- * @returns {Promise<{pitch:number, yaw:number}>}
- */
-export const getRecommendedRotationForLocation = async (params) =>
-{
-	const {homeId, homeVersion, host, locationId:givenLocationId} = params;
-	const {locationId} = getCorrectedGivenProps({locationId:givenLocationId});
-	const {data:variationData} = await getVariationJsonData({homeId, homeVersion, host});
-	const location = LeUtils.find(variationData?.locations, location => location?.locationId === locationId);
-	if(ISSET(location?.desiredRotation))
-	{
-		return {yaw:FLOAT_LAX(location?.desiredRotation), pitch:0};
-	}
-	return {yaw:FLOAT_LAX(location?.recommendedRotation?.yaw), pitch:FLOAT_LAX(location?.recommendedRotation?.pitch)};
-};
-
-/**
- * Returns the recommended rotation for the given location.
- * If the location cannot be found, the recommended rotation will be {yaw:0, pitch:0}.
- *
- * @param {Object} params
- * @param {string} params.homeId
- * @param {string|null} [params.homeVersion]
- * @param {string|null} [params.host]
- * @param {string|null} [params.locationId]
- * @returns {[{pitch:number, yaw:number}|null, boolean, string|null]}
- */
-export const useRecommendedRotationForLocation = (params) =>
-{
-	const {homeId, homeVersion, host, locationId} = params;
-	return LeRed.usePromises(() => getRecommendedRotationForLocation({homeId, homeVersion, host, locationId}), [homeId, homeVersion, host, locationId]);
 };
 
 
@@ -439,7 +397,7 @@ export const getCurrentSkusGrouped = async (params) =>
 			let skuFound = false;
 			LeUtils.each(skuGroups, (skuGroup, groupId) =>
 			{
-				let skuGroupIndex = LeUtils.findIndex(skuGroup, skuGroupSku => skuGroupSku === sku);
+				let skuGroupIndex = LeUtils.findIndex(skuGroup, skuGroupSku => (skuGroupSku === sku));
 				if(ISSET(skuGroupIndex))
 				{
 					selectedSkuGroupIndex[groupId] = skuGroupIndex;
@@ -459,7 +417,7 @@ export const getCurrentSkusGrouped = async (params) =>
 			const skuGroup = skuGroups[groupId];
 			if(ISSET(skuGroup))
 			{
-				const skuGroupIndex = LeUtils.findIndex(skuGroup, skuGroupSku => skuGroupSku === sku);
+				const skuGroupIndex = LeUtils.findIndex(skuGroup, skuGroupSku => (skuGroupSku === sku));
 				if(ISSET(skuGroupIndex))
 				{
 					selectedSkuGroupIndex[groupId] = skuGroupIndex;
@@ -568,7 +526,7 @@ const getCurrentStyleAndLocationId = async (params) =>
 	
 	const getStyleId = ({locationId = undefined}) =>
 	{
-		const location = !locationId ? null : LeUtils.find(variationData?.locations, location => location?.locationId === locationId);
+		const location = !locationId ? null : LeUtils.find(variationData?.locations, location => (location?.locationId === locationId));
 		let result = null;
 		LeUtils.each(variationData?.styles, style =>
 		{
@@ -583,7 +541,7 @@ const getCurrentStyleAndLocationId = async (params) =>
 	
 	const getLocationId = ({styleId = undefined}) =>
 	{
-		const style = !styleId ? null : LeUtils.find(variationData?.styles, style => style?.styleId === styleId);
+		const style = !styleId ? null : LeUtils.find(variationData?.styles, style => (style?.styleId === styleId));
 		let result = null;
 		LeUtils.each(variationData?.locations, location =>
 		{

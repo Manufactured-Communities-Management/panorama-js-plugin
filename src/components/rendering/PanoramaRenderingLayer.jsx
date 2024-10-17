@@ -2,6 +2,7 @@ import React from 'react';
 import {LeRed} from '@lowentry/react-redux';
 import {LeUtils} from '@lowentry/utils';
 import {PanoramaRenderingLayerSphere} from './PanoramaRenderingLayerSphere.jsx';
+import {useFadeoutAnimation} from '../utils/PanoramaReactUtils.jsx';
 
 
 const FADEOUT_DELAY_MS = 200;
@@ -16,11 +17,9 @@ export const PanoramaRenderingLayerFullFadeTimeMs = FADEOUT_DURATION_MS + 200;
 
 export const PanoramaRenderingLayer = LeRed.memo(({src, visible, renderOrder}) =>
 {
-	const [textures, setTextures] = LeRed.useState(null);
-	const [maskTextures, setMaskTextures] = LeRed.useState(null);
+	const [renderId, setRenderId] = LeRed.useState(LeUtils.uniqueId());
 	
-	const opacityRef = LeRed.useRef(1);
-	const [opacity, setOpacity] = LeRed.useState(1);
+	const resolutionsRef = LeRed.useRef([]);
 	
 	
 	LeRed.useEffect(() =>
@@ -29,62 +28,34 @@ export const PanoramaRenderingLayer = LeRed.memo(({src, visible, renderOrder}) =
 			onDone:
 				({textures, maskTextures}) =>
 				{
-					setTextures(textures);
-					setMaskTextures(maskTextures);
+					const fadeoutDuration = (FADEOUT_DURATION_LINEAR ? FADEOUT_DURATION_MS : null);
+					const fadeoutDecayFactor = (FADEOUT_DURATION_LINEAR ? null : FADEOUT_DURATION_DECAY_FACTOR);
+					
+					LeUtils.each(resolutionsRef.current, resolution => resolution.visible = false);
+					resolutionsRef.current.unshift({visible:true, props:{key:LeUtils.uniqueId(), textures, maskTextures, fadeoutDuration, fadeoutDecayFactor}});
+					setRenderId(LeUtils.uniqueId());
 				},
 		}).remove;
 	}, [src]);
 	
 	
-	LeRed.useEffect(() =>
-	{
-		if(visible)
-		{
-			opacityRef.current = 1;
-			setOpacity(1);
-			return;
-		}
-		
-		let timer = null;
-		const stopTimer = () =>
-		{
-			try
-			{
-				timer?.remove();
-				timer = null;
-			}
-			catch(e)
-			{
-				console.error('[PanoramaViewer] PanoramaRenderingLayer fadeout timer removal failed:', e);
-			}
-		};
-		
-		timer = LeUtils.setAnimationFrameInterval(deltaTime =>
-		{
-			if(FADEOUT_DURATION_LINEAR)
-			{
-				opacityRef.current -= deltaTime / (FADEOUT_DURATION_MS / 1000);
-			}
-			else
-			{
-				opacityRef.current *= Math.pow(FADEOUT_DURATION_DECAY_FACTOR, deltaTime);
-			}
-			
-			if(opacityRef.current < 0.001)
-			{
-				opacityRef.current = 0;
-			}
-			setOpacity(opacityRef.current);
-			
-			if(opacityRef.current <= 0)
-			{
-				stopTimer();
-			}
-		});
-		
-		return stopTimer;
-	}, [src, visible]);
+	return (<>
+		{LeUtils.mapToArray(resolutionsRef.current, (resolution, index) => (
+			<PanoramaRenderingLayerResolution {...resolution.props} visible={visible && resolution.visible} renderOrder={renderOrder + (index / resolutionsRef.current.length)}/>
+		))}
+	</>);
+});
+
+
+const PanoramaRenderingLayerResolution = LeRed.memo(({src, visible, fadeoutDuration, fadeoutDecayFactor, renderOrder, textures, maskTextures}) =>
+{
+	const {opacity} = useFadeoutAnimation({src, visible, duration:fadeoutDuration, decayFactor:fadeoutDecayFactor});
 	
+	
+	if(opacity <= 0)
+	{
+		return null;
+	}
 	
 	return (<>
 		<PanoramaRenderingLayerSphere renderOrder={renderOrder} opacity={opacity} radius={1000} textures={textures} maskTextures={maskTextures}/>
