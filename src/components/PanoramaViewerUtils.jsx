@@ -1,5 +1,5 @@
 import {LeRed} from '@lowentry/react-redux';
-import {LeUtils, FLOAT_LAX, ISSET, STRING, IS_ARRAY, IS_OBJECT} from '@lowentry/utils';
+import {LeUtils, ISSET, STRING, IS_ARRAY, IS_OBJECT} from '@lowentry/utils';
 import {getVariationJsonData} from './utils/PanoramaVariationObtainingUtils.jsx';
 import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils.jsx';
 
