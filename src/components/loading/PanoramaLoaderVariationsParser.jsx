@@ -10,7 +10,7 @@ export const PanoramaLoaderVariationsParser = ({src = undefined, styleIndex:give
 	const {variations, homeId, skus, styleId, locationId, host, homeUrl, getErrorWidget, getLoadingWidget} = props;
 	
 	const styles = variations?.styles;
-	const locations = variations?.locations;
+	const locations = variations?.locations?.filter(location => LeUtils.contains(location?.supportedStyleIds, styleId));
 	if(!styles || !locations)
 	{
 		return getErrorWidget({canRetry:false, id:'could-not-connect-to-home', message:'Couldn\'t connect to home: ' + homeId, reason:'the home data isn\'t compatible with our frontend, it doesn\'t contain the information that should be in there', data:{homeId, host, homeUrl, variations}});
