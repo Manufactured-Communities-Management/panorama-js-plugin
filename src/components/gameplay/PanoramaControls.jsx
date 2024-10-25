@@ -1,5 +1,5 @@
 import {LeRed} from '@lowentry/react-redux';
-import {LeUtils, FLOAT_LAX_ANY, ISSET} from '@lowentry/utils';
+import {LeUtils, FLOAT_LAX_ANY, FLOAT_LAX, ISSET} from '@lowentry/utils';
 import {MathUtils} from 'three';
 import {useThree} from '@react-three/fiber';
 
@@ -9,10 +9,12 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	const CUBEMAP_YAW_OFFSET = 90;
 	
 	const ROTATION_SPEED = 0.0012;
+	const ROTATION_TOUCH_SPEED_MULTIPLIER = 2.0;
 	const ROTATION_SLIDING_DISTANCE = 60;
 	const ROTATION_DRAG_WHEN_SLIDING = 0.95393;
 	const ROTATION_DRAG_WHEN_DRAGGING = 0.9999999995;
 	const FOV_SCROLL_SPEED = 0.05;
+	const FOV_TOUCH_SPEED_MULTIPLIER = 600;
 	const ROTATION_ANIMATION_SPEED = 2;
 	
 	
@@ -45,6 +47,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	const cameraRotationSpeed = LeRed.useRef({yaw:0, pitch:0});
 	const cameraFov = LeRed.useRef(clampFov(initialFov));
 	const lastCameraFovCallbackParams = LeRed.useRef();
+	const lastTouchDistance = LeRed.useRef(null);
 	const cameraFovRotationSpeedMultiplier = () => (cameraFov.current / 90);
 	
 	
@@ -85,6 +88,14 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	}, [initialCameraRotation]);
 	
 	
+	const handleMouseScroll = LeRed.useCallback((event) =>
+	{
+		event.stopPropagation?.();
+		event.preventDefault?.();
+		cameraFov.current = clampFov(cameraFov.current + (FLOAT_LAX_ANY(event.deltaY, 0) * FOV_SCROLL_SPEED * zoomSpeed.current));
+	}, []);
+	
+	
 	const handleMouseDown = LeRed.useCallback((event) =>
 	{
 		event.stopPropagation?.();
@@ -97,7 +108,6 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 		{
 			if(event.touches.length > 1)
 			{
-				handleMouseUp();
 				return;
 			}
 			if(event.touches.length <= 0)
@@ -119,11 +129,21 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 		{
 			return;
 		}
+		const isTouchEvent = !!event.touches;
 		if(event.touches)
 		{
+			const lastTouchDistanceValue = lastTouchDistance.current;
+			lastTouchDistance.current = null;
 			if(event.touches.length > 1)
 			{
-				handleMouseUp();
+				if(event.touches.length === 2)
+				{
+					lastTouchDistance.current = FLOAT_LAX(Math.hypot(event.touches[0].clientX - event.touches[1].clientX, event.touches[0].clientY - event.touches[1].clientY));
+					if(lastTouchDistanceValue !== null)
+					{
+						handleMouseScroll({deltaY:((lastTouchDistanceValue - lastTouchDistance.current) / lastTouchDistanceValue) * FOV_TOUCH_SPEED_MULTIPLIER});
+					}
+				}
 				return;
 			}
 			if(event.touches.length <= 0)
@@ -137,8 +157,8 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 		const deltaX = event.clientX - startMousePosition.current.x;
 		const deltaY = event.clientY - startMousePosition.current.y;
 		const newCameraRotation = {
-			yaw:  startCameraRotation.current.yaw + (deltaX * ROTATION_SPEED * lookSpeed.current * lookSpeedX.current * cameraFovRotationSpeedMultiplier()),
-			pitch:MathUtils.clamp(startCameraRotation.current.pitch + (deltaY * ROTATION_SPEED * lookSpeed.current * lookSpeedY.current * cameraFovRotationSpeedMultiplier()), -Math.PI / 2, Math.PI / 2),
+			yaw:  startCameraRotation.current.yaw + (deltaX * ROTATION_SPEED * (isTouchEvent ? ROTATION_TOUCH_SPEED_MULTIPLIER : 1) * lookSpeed.current * lookSpeedX.current * cameraFovRotationSpeedMultiplier()),
+			pitch:MathUtils.clamp(startCameraRotation.current.pitch + (deltaY * ROTATION_SPEED * (isTouchEvent ? ROTATION_TOUCH_SPEED_MULTIPLIER : 1) * lookSpeed.current * lookSpeedY.current * cameraFovRotationSpeedMultiplier()), -Math.PI / 2, Math.PI / 2),
 		};
 		cameraRotationSpeed.current = {
 			yaw:  (newCameraRotation.yaw - cameraRotation.current.yaw) * ROTATION_SLIDING_DISTANCE,
@@ -150,17 +170,11 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	const handleMouseUp = LeRed.useCallback((event) =>
 	{
 		isDragging.current = false;
+		lastTouchDistance.current = null;
 		if(event && event.touches && (event.touches.length === 1))
 		{
 			handleMouseDown(event);
 		}
-	}, []);
-	
-	const handleMouseScroll = LeRed.useCallback((event) =>
-	{
-		event.stopPropagation?.();
-		event.preventDefault?.();
-		cameraFov.current = clampFov(cameraFov.current + (FLOAT_LAX_ANY(event.deltaY, 0) * FOV_SCROLL_SPEED * zoomSpeed.current));
 	}, []);
 	
 	
@@ -273,7 +287,6 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 		document.addEventListener('touchend', handleMouseUp);
 		document.addEventListener('touchcancel', handleMouseUp);
 		domElement.addEventListener('wheel', handleMouseScroll);
-		domElement.addEventListener('pinch', handleMouseScroll);
 		
 		return () =>
 		{
@@ -286,7 +299,6 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 			document.removeEventListener('touchend', handleMouseUp);
 			document.removeEventListener('touchcancel', handleMouseUp);
 			domElement.removeEventListener('wheel', handleMouseScroll);
-			domElement.removeEventListener('pinch', handleMouseScroll);
 		};
 	}, [gl.domElement, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseScroll]);
 	
