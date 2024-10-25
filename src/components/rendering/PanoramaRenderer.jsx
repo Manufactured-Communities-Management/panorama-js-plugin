@@ -16,7 +16,7 @@ const FADEOUT_DURATION_DECAY_FACTOR = Math.pow(0.01, 1 / (FADEOUT_DURATION_MS / 
 const FADEOUT_DURATION_LINEAR = false;
 
 
-export const PanoramaRenderer = LeRed.memo(({initialFov:givenInitialFov, onFovChanged:givenOnFovChanged, ...props}) =>
+export const PanoramaRenderer = LeRed.memo((props) =>
 {
 	const {getErrorWidget, getLoadingWidget} = props;
 	
@@ -26,24 +26,6 @@ export const PanoramaRenderer = LeRed.memo(({initialFov:givenInitialFov, onFovCh
 	const [error, setError] = LeRed.useState(null);
 	
 	const layersRef = LeRed.useRef([]);
-	
-	const [initialFov, setInitialFov] = LeRed.useState(null);
-	
-	
-	const onFovChanged = LeRed.useCallback(newFov =>
-	{
-		setInitialFov(newFov);
-		givenOnFovChanged?.(newFov);
-	}, [givenOnFovChanged]);
-	
-	
-	LeRed.useEffect(() =>
-	{
-		if(givenInitialFov)
-		{
-			setInitialFov(givenInitialFov);
-		}
-	}, [givenInitialFov]);
 	
 	
 	LeRed.useMemo(() =>
@@ -104,14 +86,14 @@ export const PanoramaRenderer = LeRed.memo(({initialFov:givenInitialFov, onFovCh
 		{!!initialLoading && getLoadingWidget()}
 		<div style={{position:'relative', width:'100%', height:'100%', overflow:'hidden', ...(!initialLoading ? {} : {width:'1px', height:'1px', opacity:'0'})}}>
 			{LeUtils.mapToArray(layersRef.current, layer => (
-				<PanoramaRendererAtLocation {...layer.givenProps} {...layer.props} initialFov={initialFov} onFovChanged={onFovChanged}/>
+				<PanoramaRendererAtLocation {...layer.givenProps} {...layer.props}/>
 			))}
 		</div>
 	</>);
 });
 
 
-const PanoramaRendererAtLocation = LeRed.memo(({loading, setLoading, setError, src, homeId, host, homeUrl, variations, styleIndex, locationIndex, basisTranscoderPath, minFov, maxFov, initialFov, onFovChanged, initialCameraRotation:givenInitialCameraRotation, onCameraRotationChanged:givenOnCameraRotationChanged, lookSpeed, lookSpeedX, lookSpeedY, zoomSpeed, getErrorWidget, getLoadingWidget}) =>
+const PanoramaRendererAtLocation = LeRed.memo(({loading, setLoading, setError, src, homeId, host, homeUrl, variations, styleIndex, locationIndex, basisTranscoderPath, minFov, maxFov, calculateFov, onFovChanged, initialCameraRotation:givenInitialCameraRotation, onCameraRotationChanged:givenOnCameraRotationChanged, lookSpeed, lookSpeedX, lookSpeedY, zoomSpeed, getErrorWidget, getLoadingWidget}) =>
 {
 	const [movedCamera, setMovedCamera] = LeRed.useState(false);
 	
@@ -152,7 +134,7 @@ const PanoramaRendererAtLocation = LeRed.memo(({loading, setLoading, setError, s
 		<div style={{position:'absolute', width:'100%', height:'100%', overflow:'hidden', ...(!loading ? {opacity} : {width:'1px', height:'1px', opacity:'0'})}}>
 			<Canvas flat={true} linear={true} shadows={false} frameloop="demand" gl={{precision:'highp', antialias:false, depth:false, stencil:false}}>
 				<PerspectiveCamera makeDefault position={[0, 0, 0]}/>
-				<PanoramaControls minFov={minFov} maxFov={maxFov} initialFov={initialFov} onFovChanged={onFovChanged} initialCameraRotation={initialCameraRotation} onCameraRotationChanged={onCameraRotationChanged} lookSpeed={FLOAT_LAX_ANY(lookSpeed, 1) * controlsMultiplier} lookSpeedX={lookSpeedX} lookSpeedY={lookSpeedY} zoomSpeed={FLOAT_LAX_ANY(zoomSpeed, 1) * controlsMultiplier}/>
+				<PanoramaControls minFov={minFov} maxFov={maxFov} calculateFov={calculateFov} onFovChanged={onFovChanged} initialCameraRotation={initialCameraRotation} onCameraRotationChanged={onCameraRotationChanged} lookSpeed={FLOAT_LAX_ANY(lookSpeed, 1) * controlsMultiplier} lookSpeedX={lookSpeedX} lookSpeedY={lookSpeedY} zoomSpeed={FLOAT_LAX_ANY(zoomSpeed, 1) * controlsMultiplier}/>
 				
 				<PanoramaRendererTexturePreloader src={src} homeId={homeId} host={host} homeUrl={homeUrl} styleIndex={styleIndex} locationIndex={locationIndex} basisTranscoderPath={basisTranscoderPath} setLoading={setLoading} setError={setError}/>
 			</Canvas>

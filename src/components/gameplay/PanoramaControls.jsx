@@ -4,7 +4,7 @@ import {MathUtils} from 'three';
 import {useThree} from '@react-three/fiber';
 
 
-export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovChanged, initialCameraRotation, onCameraRotationChanged, lookSpeed:givenLookSpeed, lookSpeedX:givenLookSpeedX, lookSpeedY:givenLookSpeedY, zoomSpeed:givenZoomSpeed}) =>
+export const PanoramaControls = LeRed.memo(({minFov, maxFov, calculateFov, onFovChanged, initialCameraRotation, onCameraRotationChanged, lookSpeed:givenLookSpeed, lookSpeedX:givenLookSpeedX, lookSpeedY:givenLookSpeedY, zoomSpeed:givenZoomSpeed}) =>
 {
 	const CUBEMAP_YAW_OFFSET = 90;
 	
@@ -45,7 +45,9 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 	const cameraRotationGoal = LeRed.useRef();
 	const lastCameraRotationCallbackParams = LeRed.useRef();
 	const cameraRotationSpeed = LeRed.useRef({yaw:0, pitch:0});
-	const cameraFov = LeRed.useRef(clampFov(initialFov));
+	const lastCalculatedFovAspectRatio = LeRed.useRef(null);
+	const lastCalculatedFov = LeRed.useRef(calculateFov(1));
+	const cameraFov = LeRed.useRef(clampFov(lastCalculatedFov.current));
 	const lastCameraFovCallbackParams = LeRed.useRef();
 	const lastTouchDistance = LeRed.useRef(null);
 	const cameraFovRotationSpeedMultiplier = () => (cameraFov.current / 90);
@@ -94,6 +96,32 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, initialFov, onFovCh
 		event.preventDefault?.();
 		cameraFov.current = clampFov(cameraFov.current + (FLOAT_LAX_ANY(event.deltaY, 0) * FOV_SCROLL_SPEED * zoomSpeed.current));
 	}, []);
+	
+	LeRed.useEffectAnimationFrameInterval(() =>
+	{
+		if(!gl?.domElement?.width || !gl?.domElement?.height)
+		{
+			return;
+		}
+		const aspectRatio = gl.domElement.width / gl.domElement.height;
+		if(aspectRatio === lastCalculatedFovAspectRatio.current)
+		{
+			return;
+		}
+		lastCalculatedFovAspectRatio.current = aspectRatio;
+		const lastCalculatedFovValue = lastCalculatedFov.current;
+		lastCalculatedFov.current = calculateFov(aspectRatio);
+		if(lastCalculatedFovValue === lastCalculatedFov.current)
+		{
+			return;
+		}
+		cameraFov.current = clampFov(cameraFov.current * (lastCalculatedFov.current / lastCalculatedFovValue));
+	}, [gl?.domElement, calculateFov]);
+	
+	LeRed.useEffect(() =>
+	{
+		lastCalculatedFovAspectRatio.current = null; // force the FOV to be recalculated
+	}, [calculateFov]);
 	
 	
 	const handleMouseDown = LeRed.useCallback((event) =>

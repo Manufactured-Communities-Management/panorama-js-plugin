@@ -21,8 +21,7 @@ import {getCorrectedGivenProps, isHostPrivate} from './utils/PanoramaPropsParsin
  * @property {(()=>import('react').ReactNode)|null} [loadingWidget]
  * @property {number|null} [minFov]
  * @property {number|null} [maxFov]
- * @property {number|null} [initialFov]
- * @property {string|null} [basisTranscoderPath]
+ * @property {((aspectRatio:number)=>number)|null} [calculateFov] The function to override how the field of view is calculated from the aspect ratio, for example:  (aspectRatio) => 109.22 - (16.69 * aspectRatio)
  * @property {((newFov:number)=>void)|null} [onFovChanged]
  * @property {{yaw:number, pitch:number}|null} [initialCameraRotation]
  * @property {((newRotation:{yaw:number, pitch:number})=>void)|null} [onCameraRotationChanged]
@@ -30,6 +29,7 @@ import {getCorrectedGivenProps, isHostPrivate} from './utils/PanoramaPropsParsin
  * @property {number|null} [lookSpeedX]
  * @property {number|null} [lookSpeedY]
  * @property {number|null} [zoomSpeed]
+ * @property {string|null} [basisTranscoderPath]
  */
 /**
  * The PanoramaViewer component is the main component for rendering a panoramic home.
@@ -39,10 +39,11 @@ import {getCorrectedGivenProps, isHostPrivate} from './utils/PanoramaPropsParsin
  */
 export const PanoramaViewer = LeRed.memo((props) =>
 {
-	const {homeId:givenHomeId, homeVersion:givenHomeVersion, host:givenHost, styleId:givenStyleId, locationId:givenLocationId, onError, errorWidget, loadingWidget, minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov, basisTranscoderPath:givenBasisTranscoderPath, ...other} = props;
+	const {homeId:givenHomeId, homeVersion:givenHomeVersion, host:givenHost, styleId:givenStyleId, locationId:givenLocationId, onError, errorWidget, loadingWidget, minFov:givenMinFov, maxFov:givenMaxFov, calculateFov:givenCalculateFov, basisTranscoderPath:givenBasisTranscoderPath, ...other} = props;
 	
 	const {homeId, homeVersion, host, locationId, styleId, basisTranscoderPath} = LeRed.useMemo(() => getCorrectedGivenProps({homeId:givenHomeId, homeVersion:givenHomeVersion, host:givenHost, styleId:givenStyleId, locationId:givenLocationId, basisTranscoderPath:givenBasisTranscoderPath}), [givenHomeId, givenHomeVersion, givenHost, givenStyleId, givenLocationId, givenBasisTranscoderPath]);
-	const {minFov, maxFov, initialFov} = LeRed.useMemo(() => getCorrectedGivenProps({minFov:givenMinFov, maxFov:givenMaxFov, initialFov:givenInitialFov}), [givenMinFov, givenMaxFov, givenInitialFov]);
+	const {minFov, maxFov} = LeRed.useMemo(() => getCorrectedGivenProps({minFov:givenMinFov, maxFov:givenMaxFov}), [givenMinFov, givenMaxFov]);
+	const calculateFov = LeRed.useMemo(() => givenCalculateFov ?? (aspectRatio => 138.06 - (124.11 * aspectRatio) + (103.83 * Math.pow(aspectRatio, 2)) - (29.30 * Math.pow(aspectRatio, 3))), [givenCalculateFov]);
 	
 	const [attemptId, setAttemptId] = LeRed.useState(LeUtils.uniqueId());
 	
@@ -102,6 +103,6 @@ export const PanoramaViewer = LeRed.memo((props) =>
 	}
 	
 	return (<>
-		<PanoramaLoaderVariationsRetriever homeId={homeId} homeVersion={homeVersion} host={host} styleId={styleId} locationId={locationId} basisTranscoderPath={basisTranscoderPath} minFov={minFov} maxFov={maxFov} initialFov={initialFov} getErrorWidget={getErrorWidget} getLoadingWidget={getLoadingWidget} {...other}/>
+		<PanoramaLoaderVariationsRetriever homeId={homeId} homeVersion={homeVersion} host={host} styleId={styleId} locationId={locationId} basisTranscoderPath={basisTranscoderPath} minFov={minFov} maxFov={maxFov} calculateFov={calculateFov} getErrorWidget={getErrorWidget} getLoadingWidget={getLoadingWidget} {...other}/>
 	</>);
 });

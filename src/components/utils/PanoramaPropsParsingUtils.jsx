@@ -32,11 +32,6 @@ export const getCorrectedGivenProps = (props) =>
 			case 'maxFov':
 				newValue = Math.min(179, FLOAT_LAX_ANY(value, 130));
 				break;
-			case 'initialFov':
-				const minFov = Math.max(1, FLOAT_LAX_ANY(result.minFov, 20));
-				const maxFov = Math.min(179, FLOAT_LAX_ANY(result.maxFov, 130));
-				newValue = Math.max(minFov, Math.min(maxFov, FLOAT_LAX_ANY(value, 95)));
-				break;
 			case 'basisTranscoderPath':
 				newValue = (STRING(value).trim() || 'https://d11xh1fqz0z9k8.cloudfront.net/basis_transcoder/');
 				break;
