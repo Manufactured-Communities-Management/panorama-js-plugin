@@ -46,7 +46,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, calculateFov, onFov
 	const lastCameraRotationCallbackParams = LeRed.useRef();
 	const cameraRotationSpeed = LeRed.useRef({yaw:0, pitch:0});
 	const lastCalculatedFovAspectRatio = LeRed.useRef(null);
-	const lastCalculatedFov = LeRed.useRef(calculateFov(1));
+	const lastCalculatedFov = LeRed.useRef(FLOAT_LAX(calculateFov(1)));
 	const cameraFov = LeRed.useRef(clampFov(lastCalculatedFov.current));
 	const lastCameraFovCallbackParams = LeRed.useRef();
 	const lastTouchDistance = LeRed.useRef(null);
@@ -110,7 +110,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, calculateFov, onFov
 		}
 		lastCalculatedFovAspectRatio.current = aspectRatio;
 		const lastCalculatedFovValue = lastCalculatedFov.current;
-		lastCalculatedFov.current = calculateFov(aspectRatio);
+		lastCalculatedFov.current = FLOAT_LAX(calculateFov(aspectRatio));
 		if(lastCalculatedFovValue === lastCalculatedFov.current)
 		{
 			return;
