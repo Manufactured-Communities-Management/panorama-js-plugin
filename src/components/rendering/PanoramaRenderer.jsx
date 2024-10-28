@@ -1,11 +1,12 @@
 import React from 'react';
 import {LeRed} from '@lowentry/react-redux';
-import {LeUtils, ISSET, FLOAT_LAX, FLOAT_LAX_ANY} from '@lowentry/utils';
+import {LeUtils, ISSET, FLOAT_LAX, FLOAT_LAX_ANY, STRING} from '@lowentry/utils';
 import {Canvas} from '@react-three/fiber';
 import {PerspectiveCamera} from '@react-three/drei';
 import {PanoramaControls} from '../gameplay/PanoramaControls.jsx';
 import {PanoramaRendererTexturePreloader} from './PanoramaRendererTexturePreloader.jsx';
 import {useFadeoutAnimation} from '../utils/PanoramaReactUtils.jsx';
+import {getSelectedVariationIndexesBySku, getTexturePathsToRender} from '../utils/PanoramaVariationParsingUtils.jsx';
 
 
 const FADE_BETWEEN_LOCATIONS = true;
@@ -23,7 +24,6 @@ export const PanoramaRenderer = LeRed.memo((props) =>
 	const [renderId, setRenderId] = LeRed.useState(LeUtils.uniqueId());
 	
 	const [initialLoading, setInitialLoading] = LeRed.useState(true);
-	const [error, setError] = LeRed.useState(null);
 	
 	const layersRef = LeRed.useRef([]);
 	
@@ -61,26 +61,21 @@ export const PanoramaRenderer = LeRed.memo((props) =>
 			}
 		};
 		
-		layersRef.current.push({props:{key, loading:true, setLoading, setError}, givenProps:props});
-	}, [props?.homeUrl, props?.locationIndex]);
+		layersRef.current.push({props:{key, loading:true, setLoading}, givenProps:props});
+	}, [props?.homeUrl, props?.locationId]);
 	
 	
 	LeRed.useMemo(() =>
 	{
 		LeUtils.each(layersRef.current, layer =>
 		{
-			if(!FADE_BETWEEN_LOCATIONS || ((layer.givenProps.homeUrl === props.homeUrl) && (layer.givenProps.locationIndex === props.locationIndex)))
+			if(!FADE_BETWEEN_LOCATIONS || ((layer.givenProps.homeUrl === props.homeUrl) && (layer.givenProps.locationId === props.locationId)))
 			{
 				layer.givenProps = props;
 			}
 		});
 	}, [props]);
 	
-	
-	if(error)
-	{
-		return getErrorWidget(error);
-	}
 	
 	return (<>
 		{!!initialLoading && getLoadingWidget()}
@@ -93,7 +88,7 @@ export const PanoramaRenderer = LeRed.memo((props) =>
 });
 
 
-const PanoramaRendererAtLocation = LeRed.memo(({loading, setLoading, setError, src, homeId, host, homeUrl, variations, styleIndex, locationIndex, basisTranscoderPath, minFov, maxFov, calculateFov, onFovChanged, initialCameraRotation:givenInitialCameraRotation, onCameraRotationChanged:givenOnCameraRotationChanged, lookSpeed, lookSpeedX, lookSpeedY, zoomSpeed, getErrorWidget, getLoadingWidget}) =>
+const PanoramaRendererAtLocation = LeRed.memo(({loading, setLoading, homeId, host, homeUrl, variations, skus, styleId:givenStyleId, locationId, basisTranscoderPath, minFov, maxFov, calculateFov, onFovChanged, initialCameraRotation:givenInitialCameraRotation, onCameraRotationChanged:givenOnCameraRotationChanged, lookSpeed, lookSpeedX, lookSpeedY, zoomSpeed, getErrorWidget, getLoadingWidget}) =>
 {
 	const [movedCamera, setMovedCamera] = LeRed.useState(false);
 	
@@ -104,6 +99,27 @@ const PanoramaRendererAtLocation = LeRed.memo(({loading, setLoading, setError, s
 	const opacityRef = LeRed.useRef();
 	opacityRef.current = opacity;
 	
+	const [error, setError] = LeRed.useState(null);
+	
+	
+	let styleId = givenStyleId;
+	
+	const styles = variations?.styles;
+	const locations = LeRed.useMemo(() => styleId ? variations?.locations?.filter(location => LeUtils.contains(location?.supportedStyleIds, styleId)) : variations?.locations, [variations?.locations, styleId]);
+	
+	const locationIndex = LeRed.useMemo(() => locationId ? LeUtils.findIndex(locations, location => (location?.locationId === locationId)) : 0, [locations, locationId]);
+	if(!styleId)
+	{
+		styleId = STRING(locations?.[locationIndex]?.supportedStyleIds?.[0]);
+	}
+	const styleIndex = LeRed.useMemo(() => styleId ? LeUtils.findIndex(styles, style => (style?.styleId === styleId)) : 0, [styles, styleId]);
+	
+	const variationGroups = styles?.[styleIndex]?.variationGroups;
+	const locationVariationGroups = locations?.[locationIndex]?.variationGroups;
+	
+	const selectedVariationIndexes = LeRed.useMemo(() => getSelectedVariationIndexesBySku(variationGroups, skus), [variationGroups, skus]);
+	const src = LeRed.useMemo(() => getTexturePathsToRender(variationGroups, selectedVariationIndexes, locationVariationGroups, styleIndex, locationIndex, homeUrl), [variationGroups, selectedVariationIndexes, locationVariationGroups, styleIndex, locationIndex, homeUrl]);
+	
 	
 	const initialCameraRotation = LeRed.useMemo(() =>
 	{
@@ -111,14 +127,13 @@ const PanoramaRendererAtLocation = LeRed.memo(({loading, setLoading, setError, s
 		{
 			return givenInitialCameraRotation;
 		}
-		const location = variations?.locations?.[locationIndex];
+		const location = locations?.[locationIndex];
 		if(ISSET(location?.desiredRotation))
 		{
 			return {yaw:FLOAT_LAX(location?.desiredRotation), pitch:0};
 		}
 		return {yaw:FLOAT_LAX(location?.recommendedRotation?.yaw), pitch:FLOAT_LAX(location?.recommendedRotation?.pitch)};
-	}, [givenInitialCameraRotation, variations?.locations?.[locationIndex]]);
-	
+	}, [givenInitialCameraRotation, locations?.[locationIndex]?.desiredRotation, locations?.[locationIndex]?.recommendedRotation]);
 	
 	const onCameraRotationChanged = LeRed.useCallback(newRotation =>
 	{
@@ -130,14 +145,45 @@ const PanoramaRendererAtLocation = LeRed.memo(({loading, setLoading, setError, s
 	}, [givenOnCameraRotationChanged]);
 	
 	
+	const errorComponent = LeRed.useMemo(() =>
+	{
+		if(error)
+		{
+			return getErrorWidget(error);
+		}
+		if(!styles || !locations)
+		{
+			return getErrorWidget({canRetry:false, id:'could-not-connect-to-home', message:'Couldn\'t connect to home: ' + homeId, reason:'the home data isn\'t compatible with our frontend, it doesn\'t contain the information that should be in there', data:{homeId, host, homeUrl, variations}});
+		}
+		if(styleId && locationId && (!ISSET(styleIndex) || !(styleIndex in styles) || !ISSET(locationIndex) || !(locationIndex in locations)))
+		{
+			return getErrorWidget({canRetry:false, id:'invalid-location-and-style-id', message:'Invalid location and style ID: ' + locationId + ' and ' + styleId, reason:'the location and style ID combination doesn\'t exist in the home', data:{homeId, host, homeUrl, variations, styleId, locationId}});
+		}
+		if(!ISSET(styleIndex) || !(styleIndex in styles))
+		{
+			return getErrorWidget({canRetry:false, id:'invalid-style-id', message:'Invalid style ID: ' + styleId, reason:'the style ID doesn\'t exist in the home', data:{homeId, host, homeUrl, variations, styleId}});
+		}
+		if(!ISSET(locationIndex) || !(locationIndex in locations))
+		{
+			return getErrorWidget({canRetry:false, id:'invalid-location-id', message:'Invalid location ID: ' + locationId, reason:'the location ID doesn\'t exist in the home', data:{homeId, host, homeUrl, variations, locationId}});
+		}
+		if(!variationGroups || !locationVariationGroups)
+		{
+			return getErrorWidget({canRetry:false, id:'could-not-connect-to-home', message:'Couldn\'t connect to home: ' + homeId, reason:'the home data isn\'t compatible with our frontend, it doesn\'t contain the information that should be in there', data:{homeId, host, homeUrl, variations}});
+		}
+	}, [error, styles, locations, styleId, locationId, styleIndex, locationIndex, variationGroups, locationVariationGroups, homeId, host, homeUrl, variations, getErrorWidget]);
+	
+	
 	return (<>
 		<div style={{position:'absolute', width:'100%', height:'100%', overflow:'hidden', ...(!loading ? {opacity} : {width:'1px', height:'1px', opacity:'0'})}}>
-			<Canvas flat={true} linear={true} shadows={false} frameloop="demand" gl={{precision:'highp', antialias:false, depth:false, stencil:false}}>
-				<PerspectiveCamera makeDefault position={[0, 0, 0]}/>
-				<PanoramaControls minFov={minFov} maxFov={maxFov} calculateFov={calculateFov} onFovChanged={onFovChanged} initialCameraRotation={initialCameraRotation} onCameraRotationChanged={onCameraRotationChanged} lookSpeed={FLOAT_LAX_ANY(lookSpeed, 1) * controlsMultiplier} lookSpeedX={lookSpeedX} lookSpeedY={lookSpeedY} zoomSpeed={FLOAT_LAX_ANY(zoomSpeed, 1) * controlsMultiplier}/>
-				
-				<PanoramaRendererTexturePreloader src={src} homeId={homeId} host={host} homeUrl={homeUrl} styleIndex={styleIndex} locationIndex={locationIndex} basisTranscoderPath={basisTranscoderPath} setLoading={setLoading} setError={setError}/>
-			</Canvas>
+			{errorComponent || (
+				<Canvas flat={true} linear={true} shadows={false} frameloop="demand" gl={{precision:'highp', antialias:false, depth:false, stencil:false}}>
+					<PerspectiveCamera makeDefault position={[0, 0, 0]}/>
+					<PanoramaControls minFov={minFov} maxFov={maxFov} calculateFov={calculateFov} onFovChanged={onFovChanged} initialCameraRotation={initialCameraRotation} onCameraRotationChanged={onCameraRotationChanged} lookSpeed={FLOAT_LAX_ANY(lookSpeed, 1) * controlsMultiplier} lookSpeedX={lookSpeedX} lookSpeedY={lookSpeedY} zoomSpeed={FLOAT_LAX_ANY(zoomSpeed, 1) * controlsMultiplier}/>
+					
+					<PanoramaRendererTexturePreloader src={src} homeId={homeId} host={host} homeUrl={homeUrl} styleIndex={styleIndex} locationIndex={locationIndex} basisTranscoderPath={basisTranscoderPath} setLoading={setLoading} setError={setError}/>
+				</Canvas>
+			)}
 		</div>
 	</>);
 });

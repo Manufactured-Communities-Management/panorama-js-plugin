@@ -72,29 +72,37 @@ export const PanoramaViewer = LeRed.memo((props) =>
 	}, [loadingWidget]);
 	
 	
-	if(!isHostPrivate(host))
+	const errorComponent = LeRed.useMemo(() =>
 	{
-		if(!givenHomeId)
+		if(!isHostPrivate(host))
 		{
-			return getErrorWidget({canRetry:false, id:'missing-home-id', message:'Missing home ID', reason:'the PanoramaViewer component was rendered without being given a valid home ID', data:{homeId:givenHomeId}});
+			if(!givenHomeId)
+			{
+				return getErrorWidget({canRetry:false, id:'missing-home-id', message:'Missing home ID', reason:'the PanoramaViewer component was rendered without being given a valid home ID', data:{homeId:givenHomeId}});
+			}
+			if(homeId !== givenHomeId)
+			{
+				return getErrorWidget({canRetry:false, id:'invalid-home-id', message:'Invalid home ID: ' + givenHomeId, reason:'the home ID contains invalid characters, only "a-z 0-9 _" is allowed', data:{homeId:givenHomeId}});
+			}
+			if(!homeId)
+			{
+				return getErrorWidget({canRetry:false, id:'missing-home-id', message:'Missing home ID', reason:'the PanoramaViewer component was rendered without being given a valid home ID', data:{homeId:givenHomeId}});
+			}
 		}
-		if(homeId !== givenHomeId)
+		if(locationId && (locationId !== givenLocationId))
 		{
-			return getErrorWidget({canRetry:false, id:'invalid-home-id', message:'Invalid home ID: ' + givenHomeId, reason:'the home ID contains invalid characters, only "a-z 0-9 _" is allowed', data:{homeId:givenHomeId}});
+			return getErrorWidget({canRetry:false, id:'invalid-location-id', message:'Invalid location ID: ' + givenLocationId, reason:'the location ID contains invalid characters, only "a-z 0-9 _" is allowed', data:{locationId:givenLocationId}});
 		}
-		if(!homeId)
+		if(styleId && (styleId !== givenStyleId))
 		{
-			return getErrorWidget({canRetry:false, id:'missing-home-id', message:'Missing home ID', reason:'the PanoramaViewer component was rendered without being given a valid home ID', data:{homeId:givenHomeId}});
+			return getErrorWidget({canRetry:false, id:'invalid-style-id', message:'Invalid style ID: ' + givenStyleId, reason:'the style ID contains invalid characters, only "a-z 0-9 _" is allowed', data:{styleId:givenStyleId}});
 		}
-	}
+	}, [homeId, givenHomeId, host, locationId, givenLocationId, styleId, givenStyleId, getErrorWidget]);
 	
-	if(locationId && (locationId !== givenLocationId))
+	
+	if(errorComponent)
 	{
-		return getErrorWidget({canRetry:false, id:'invalid-location-id', message:'Invalid location ID: ' + givenLocationId, reason:'the location ID contains invalid characters, only "a-z 0-9 _" is allowed', data:{locationId:givenLocationId}});
-	}
-	if(styleId && (styleId !== givenStyleId))
-	{
-		return getErrorWidget({canRetry:false, id:'invalid-style-id', message:'Invalid style ID: ' + givenStyleId, reason:'the style ID contains invalid characters, only "a-z 0-9 _" is allowed', data:{styleId:givenStyleId}});
+		return errorComponent;
 	}
 	
 	if(!attemptId)
