@@ -1,6 +1,6 @@
 {
   "name": "@mcmhomes/panorama-viewer",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "private": false,
   "main": "./index.js",
   "description": "Provides React components to render panoramas.",
