@@ -43,7 +43,7 @@ export const PanoramaViewer = LeRed.memo((props) =>
 	
 	const {homeId, homeVersion, host, locationId, styleId, basisTranscoderPath} = LeRed.useMemo(() => getCorrectedGivenProps({homeId:givenHomeId, homeVersion:givenHomeVersion, host:givenHost, styleId:givenStyleId, locationId:givenLocationId, basisTranscoderPath:givenBasisTranscoderPath}), [givenHomeId, givenHomeVersion, givenHost, givenStyleId, givenLocationId, givenBasisTranscoderPath]);
 	const {minFov, maxFov} = LeRed.useMemo(() => getCorrectedGivenProps({minFov:givenMinFov, maxFov:givenMaxFov}), [givenMinFov, givenMaxFov]);
-	const calculateFov = LeRed.useMemo(() => givenCalculateFov ?? (aspectRatio => 138.06 - (124.11 * aspectRatio) + (103.83 * Math.pow(aspectRatio, 2)) - (29.30 * Math.pow(aspectRatio, 3))), [givenCalculateFov]);
+	const calculateFov = LeRed.useMemo(() => givenCalculateFov ?? ((aspectRatio) => (299.36 / (aspectRatio + 2.37)) - 1.35), [givenCalculateFov]);
 	
 	const [attemptId, setAttemptId] = LeRed.useState(LeUtils.uniqueId());
 	
