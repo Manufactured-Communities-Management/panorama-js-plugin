@@ -13,7 +13,7 @@ import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils.jsx';
  * @param {string|null} [params.host]
  * @param {string|null} [params.styleId]
  * @param {string|null} [params.locationId]
- * @returns {Promise<Object>}
+ * @returns {Promise<Object.<string|symbol,string[]>>}
  */
 export const getAvailableSkusGrouped = async (params) =>
 {
@@ -90,7 +90,7 @@ export const getAvailableSkusGrouped = async (params) =>
  * @param {string|null} [params.host]
  * @param {string|null} [params.styleId]
  * @param {string|null} [params.locationId]
- * @returns {[Object|null, boolean, string|null]}
+ * @returns {[Object.<string|symbol,string[]>|null, boolean, string|null]}
  */
 export const useAvailableSkusGrouped = (params) =>
 {
@@ -213,10 +213,7 @@ export const useAvailableLocationIds = (params) =>
 
 /**
  * Returns the default selected SKUs for the given home.
- * Returns an object with variation group IDs as keys, and arrays of SKUs as values.
- *
- * Each variation group only ahs 1 SKU of course, as only 1 SKU can be selected per variation group.
- * For consistency, the SKU (for every variation group) will still be returned as an array, even though it will always contain only 1 element per variation group.
+ * Returns an object with variation group IDs as keys, and the default SKUs as values.
  *
  * @param {Object} params
  * @param {string} params.homeId
@@ -224,22 +221,26 @@ export const useAvailableLocationIds = (params) =>
  * @param {string|null} [params.host]
  * @param {string|null} [params.styleId]
  * @param {string|null} [params.locationId]
- * @returns {Promise<Object>}
+ * @returns {Promise<Object.<string|symbol,string>>}
  */
 export const getDefaultSkusGrouped = async (params) =>
 {
 	const {homeId, homeVersion, host, styleId:givenStyleId, locationId:givenLocationId} = params;
+	const {data:variationData} = await getVariationJsonData({homeId, homeVersion, host});
 	const {styleId, locationId} = await getCurrentStyleAndLocationId({homeId, homeVersion, host, styleId:givenStyleId, locationId:givenLocationId});
 	const result = await getAvailableSkusGrouped({homeId, homeVersion, host, styleId, locationId});
-	return LeUtils.map(result, skus => [skus[0]]);
+	return LeUtils.map(result, (skus, groupId) =>
+	{
+		const style = LeUtils.find(variationData?.styles, style => (style?.styleId === styleId));
+		const variationGroup = LeUtils.find(style?.variationGroups, variationGroup => (variationGroup?.groupId === groupId));
+		const defaultVariationIndex = variationGroup?.defaultVariationIndex ?? 0;
+		return skus[defaultVariationIndex];
+	});
 };
 
 /**
  * Returns the default selected SKUs for the given home.
- * Returns an object with variation group IDs as keys, and arrays of SKUs as values.
- *
- * Each variation group only ahs 1 SKU of course, as only 1 SKU can be selected per variation group.
- * For consistency, the SKU (for every variation group) will still be returned as an array, even though it will always contain only 1 element per variation group.
+ * Returns an object with variation group IDs as keys, and the default SKUs as values.
  *
  * @param {Object} params
  * @param {string} params.homeId
@@ -247,7 +248,7 @@ export const getDefaultSkusGrouped = async (params) =>
  * @param {string|null} [params.host]
  * @param {string|null} [params.styleId]
  * @param {string|null} [params.locationId]
- * @returns {[Object|null, boolean, string|null]}
+ * @returns {[Object.<string|symbol,string>|null, boolean, string|null]}
  */
 export const useDefaultSkusGrouped = (params) =>
 {
@@ -369,10 +370,7 @@ export const useDefaultLocationId = (params) =>
 
 /**
  * Returns the currently selected SKUs for the given home.
- * Returns an object with variation group IDs as keys, and arrays of SKUs as values.
- *
- * Each variation group only ahs 1 SKU of course, as only 1 SKU can be selected per variation group.
- * For consistency, the SKU (for every variation group) will still be returned as an array, even though it will always contain only 1 element per variation group.
+ * Returns an object with variation group IDs as keys, and the current SKUs as values.
  *
  * @param {Object} params
  * @param {string} params.homeId
@@ -380,16 +378,22 @@ export const useDefaultLocationId = (params) =>
  * @param {string|null} [params.host]
  * @param {string|null} [params.styleId]
  * @param {string|null} [params.locationId]
- * @param {string[]|null} [params.skus]
+ * @param {Object.<string|symbol,string>|null} [params.skus]
  * @param {boolean|null} [params.warnings]
- * @returns {Promise<Object>}
+ * @returns {Promise<Object.<string|symbol,string>>}
  */
 export const getCurrentSkusGrouped = async (params) =>
 {
 	const {homeId, homeVersion, host, styleId:givenStyleId, locationId:givenLocationId, skus, warnings} = params;
+	const {data:variationData} = await getVariationJsonData({homeId, homeVersion, host});
 	const {styleId, locationId} = await getCurrentStyleAndLocationId({homeId, homeVersion, host, styleId:givenStyleId, locationId:givenLocationId});
 	const skuGroups = await getAvailableSkusGrouped({homeId, homeVersion, host, styleId, locationId});
-	const selectedSkuGroupIndex = LeUtils.mapToArray(skuGroups, () => 0);
+	const selectedSkuGroupIndex = LeUtils.mapToArray(skuGroups, (skus, groupId) =>
+	{
+		const style = LeUtils.find(variationData?.styles, style => (style?.styleId === styleId));
+		const variationGroup = LeUtils.find(style?.variationGroups, variationGroup => (variationGroup?.groupId === groupId));
+		return variationGroup?.defaultVariationIndex ?? 0;
+	});
 	if(IS_ARRAY(skus))
 	{
 		LeUtils.each(skus, sku =>
@@ -433,15 +437,12 @@ export const getCurrentSkusGrouped = async (params) =>
 			}
 		});
 	}
-	return LeUtils.map(skuGroups, (skus, groupId) => [skus[selectedSkuGroupIndex[groupId]]]);
+	return LeUtils.map(skuGroups, (skus, groupId) => skus[selectedSkuGroupIndex[groupId]]);
 };
 
 /**
  * Returns the currently selected SKUs for the given home.
- * Returns an object with variation group IDs as keys, and arrays of SKUs as values.
- *
- * Each variation group only ahs 1 SKU of course, as only 1 SKU can be selected per variation group.
- * For consistency, the SKU (for every variation group) will still be returned as an array, even though it will always contain only 1 element per variation group.
+ * Returns an object with variation group IDs as keys, and the current SKUs as values.
  *
  * @param {Object} params
  * @param {string} params.homeId
@@ -449,9 +450,9 @@ export const getCurrentSkusGrouped = async (params) =>
  * @param {string|null} [params.host]
  * @param {string|null} [params.styleId]
  * @param {string|null} [params.locationId]
- * @param {string[]|null} [params.skus]
+ * @param {Object.<string|symbol,string>|null} [params.skus]
  * @param {boolean|null} [params.warnings]
- * @returns {[Object|null, boolean, string|null]}
+ * @returns {[Object.<string|symbol,string>|null, boolean, string|null]}
  */
 export const useCurrentSkusGrouped = (params) =>
 {
@@ -470,7 +471,7 @@ export const useCurrentSkusGrouped = (params) =>
  * @param {string|null} [params.host]
  * @param {string|null} [params.styleId]
  * @param {string|null} [params.locationId]
- * @param {string[]|null} [params.skus]
+ * @param {Object.<string|symbol,string>|null} [params.skus]
  * @param {boolean|null} [params.warnings]
  * @returns {Promise<string[]>}
  */
@@ -496,7 +497,7 @@ export const getCurrentSkus = async (params) =>
  * @param {string|null} [params.host]
  * @param {string|null} [params.styleId]
  * @param {string|null} [params.locationId]
- * @param {string[]|null} [params.skus]
+ * @param {Object.<string|symbol,string>|null} [params.skus]
  * @param {boolean|null} [params.warnings]
  * @returns {[string[]|null, boolean, string|null]}
  */
