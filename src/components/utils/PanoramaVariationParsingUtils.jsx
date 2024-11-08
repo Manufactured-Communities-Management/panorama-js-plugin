@@ -1,4 +1,4 @@
-import {LeUtils, IS_ARRAY, IS_OBJECT, ISSET} from '@lowentry/utils';
+import {LeUtils, IS_ARRAY, IS_OBJECT, ISSET, INT_LAX} from '@lowentry/utils';
 
 
 export const getSelectedVariationIndexesBySku = (variationGroups, skus) =>
@@ -72,7 +72,7 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 		locationVariationGroupsIndexed[group?.groupId] = locationVariationGroup;
 		if(locationVariationGroup && !locationVariationGroup?.layer)
 		{
-			variationIndexesForLocation.push(selectedVariationIndexes[groupIndex] ?? 0);
+			variationIndexesForLocation.push(INT_LAX(selectedVariationIndexes[groupIndex]));
 		}
 		else
 		{
@@ -95,7 +95,7 @@ export const getTexturePathsToRender = (variationGroups, selectedVariationIndexe
 		{
 			if((layerGroup?.groupId === group?.groupId) || LeUtils.contains(locationVariationGroup?.layerDependencyGroupIds, group?.groupId))
 			{
-				variationIndexesForLocation.push(selectedVariationIndexes[groupIndex] ?? 0);
+				variationIndexesForLocation.push(INT_LAX(selectedVariationIndexes[groupIndex]));
 			}
 			else
 			{

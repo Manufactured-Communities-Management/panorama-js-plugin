@@ -74,7 +74,7 @@ export const useFadeoutAnimation = (params) =>
 					stopTimer();
 				}
 			});
-		}, Math.max(0, (delay ?? 0) - delayTimePassedRef.current));
+		}, Math.max(0, FLOAT_LAX(delay) - delayTimePassedRef.current));
 		
 		return stopTimer;
 	}, [visible, delay, duration, decayFactor]);

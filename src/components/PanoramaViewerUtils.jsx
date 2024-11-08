@@ -1,5 +1,5 @@
 import {LeRed} from '@lowentry/react-redux';
-import {LeUtils, ISSET, STRING, IS_ARRAY, IS_OBJECT} from '@lowentry/utils';
+import {LeUtils, ISSET, STRING, IS_ARRAY, IS_OBJECT, INT_LAX} from '@lowentry/utils';
 import {getVariationJsonData} from './utils/PanoramaVariationObtainingUtils.jsx';
 import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils.jsx';
 
@@ -233,7 +233,7 @@ export const getDefaultSkusGrouped = async (params) =>
 	{
 		const style = LeUtils.find(variationData?.styles, style => (style?.styleId === styleId));
 		const variationGroup = LeUtils.find(style?.variationGroups, variationGroup => (variationGroup?.groupId === groupId));
-		const defaultVariationIndex = variationGroup?.defaultVariationIndex ?? 0;
+		const defaultVariationIndex = INT_LAX(variationGroup?.defaultVariationIndex);
 		return skus[defaultVariationIndex];
 	});
 };
@@ -392,7 +392,7 @@ export const getCurrentSkusGrouped = async (params) =>
 	{
 		const style = LeUtils.find(variationData?.styles, style => (style?.styleId === styleId));
 		const variationGroup = LeUtils.find(style?.variationGroups, variationGroup => (variationGroup?.groupId === groupId));
-		return variationGroup?.defaultVariationIndex ?? 0;
+		return INT_LAX(variationGroup?.defaultVariationIndex);
 	});
 	if(IS_ARRAY(skus))
 	{
