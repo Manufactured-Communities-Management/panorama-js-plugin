@@ -4,7 +4,7 @@ import {LeUtils} from '@lowentry/utils';
 import {PanoramaRenderingLayer, PanoramaRenderingLayerFullFadeTimeMs} from './PanoramaRenderingLayer.jsx';
 
 
-export const PanoramaRendererLayers = LeRed.memo(({src, styleIndex, locationIndex}) =>
+export const PanoramaRendererLayers = LeRed.memo(({src}) =>
 {
 	const currentLayersRef = LeRed.useRef([]);
 	const [currentLayers, setCurrentLayers] = LeRed.useState([]);
@@ -66,21 +66,29 @@ export const PanoramaRendererLayers = LeRed.memo(({src, styleIndex, locationInde
 		const B = 1; // render b first, meaning it will be rendered below A
 		currentLayersRef.current.sort((a, b) =>
 		{
-			if(a.src.styleIndex !== b.src.styleIndex)
+			if((a.src.styleIndex !== b.src.styleIndex) || (a.src.locationIndex !== b.src.locationIndex))
 			{
-				if(a.src.styleIndex === styleIndex)
+				console.log('a', a.src.removed, a.src.removedTime, 'b', b.src.removed, b.src.removedTime);
+				if(a.src.removed && b.src.removed)
+				{
+					if(a.src.removedTime > b.src.removedTime)
+					{
+						return A;
+					}
+					if(a.src.removedTime < b.src.removedTime)
+					{
+						return B;
+					}
+					return 0;
+				}
+				if(a.removed)
+				{
+					return B;
+				}
+				if(b.removed)
 				{
 					return A;
 				}
-				return B;
-			}
-			if(a.src.locationIndex !== b.src.locationIndex)
-			{
-				if(a.src.locationIndex === locationIndex)
-				{
-					return A;
-				}
-				return B;
 			}
 			if(a.src.layerRenderOrder < b.src.layerRenderOrder)
 			{
@@ -113,7 +121,7 @@ export const PanoramaRendererLayers = LeRed.memo(({src, styleIndex, locationInde
 			return 0;
 		});
 		setCurrentLayers([...currentLayersRef.current]);
-	}, [src, styleIndex, locationIndex]);
+	}, [src]);
 	
 	
 	return (<>

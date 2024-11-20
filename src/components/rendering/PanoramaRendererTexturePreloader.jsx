@@ -7,7 +7,7 @@ import {loadMultiresTexture} from '../utils/PanoramaRendererUtils.jsx';
 import {PanoramaRenderingLayerMinimumLoadTime} from './PanoramaRenderingLayer.jsx';
 
 
-export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, homeUrl, styleIndex, locationIndex, basisTranscoderPath, setError, setLoading}) =>
+export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, homeUrl, basisTranscoderPath, setError, setLoading}) =>
 {
 	const {gl} = useThree();
 	
@@ -45,7 +45,8 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, 
 			}
 			
 			/** removed, dispose **/
-			layer.removed = true;
+			layer.src.removed = true;
+			layer.src.removedTime = performance.now();
 			currentLayersRef.current = currentLayersRef.current.filter(item => (item.key !== layer.key));
 			
 			/** if not in readyLayers, dispose textures now **/
@@ -62,7 +63,7 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, 
 			let layer = {key:LeUtils.uniqueId()};
 			const onLoadingError = ({level, error}) =>
 			{
-				if(!layer.removed && (level <= 0))
+				if(!layer.src.removed && (level <= 0))
 				{
 					setError({canRetry:true, id:'could-not-load-home', message:'Couldn\'t load the home: ' + homeId, reason:STRING(LeUtils.purgeErrorMessage(error)), data:{homeId, host, homeUrl}});
 				}
@@ -118,7 +119,8 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, 
 			/** cleanup **/
 			LeUtils.each(currentLayersRef.current, (layer, index) =>
 			{
-				layer.removed = true;
+				layer.src.removed = true;
+				layer.src.removedTime = performance.now();
 				layer.src.dispose();
 			});
 			currentLayersRef.current = [];
@@ -135,6 +137,6 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, 
 	}
 	
 	return (<>
-		<PanoramaRendererLayers src={LeUtils.mapToArray(readyLayers, layer => layer.src)} styleIndex={styleIndex} locationIndex={locationIndex}/>
+		<PanoramaRendererLayers src={LeUtils.mapToArray(readyLayers, layer => layer.src)}/>
 	</>);
 });

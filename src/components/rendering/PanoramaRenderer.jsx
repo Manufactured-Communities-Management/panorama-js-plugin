@@ -181,7 +181,7 @@ const PanoramaRendererAtLocation = LeRed.memo(({loading, setLoading, homeId, hos
 					<PerspectiveCamera makeDefault position={[0, 0, 0]}/>
 					<PanoramaControls minFov={minFov} maxFov={maxFov} calculateFov={calculateFov} onFovChanged={onFovChanged} initialCameraRotation={initialCameraRotation} onCameraRotationChanged={onCameraRotationChanged} lookSpeed={FLOAT_LAX_ANY(lookSpeed, 1) * controlsMultiplier} lookSpeedX={lookSpeedX} lookSpeedY={lookSpeedY} zoomSpeed={FLOAT_LAX_ANY(zoomSpeed, 1) * controlsMultiplier}/>
 					
-					<PanoramaRendererTexturePreloader src={src} homeId={homeId} host={host} homeUrl={homeUrl} styleIndex={styleIndex} locationIndex={locationIndex} basisTranscoderPath={basisTranscoderPath} setLoading={setLoading} setError={setError}/>
+					<PanoramaRendererTexturePreloader src={src} homeId={homeId} host={host} homeUrl={homeUrl} basisTranscoderPath={basisTranscoderPath} setLoading={setLoading} setError={setError}/>
 				</Canvas>
 			)}
 		</div>
