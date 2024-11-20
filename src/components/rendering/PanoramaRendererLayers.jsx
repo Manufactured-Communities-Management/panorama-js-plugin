@@ -68,7 +68,6 @@ export const PanoramaRendererLayers = LeRed.memo(({src}) =>
 		{
 			if((a.src.styleIndex !== b.src.styleIndex) || (a.src.locationIndex !== b.src.locationIndex))
 			{
-				console.log('a', a.src.removed, a.src.removedTime, 'b', b.src.removed, b.src.removedTime);
 				if(a.src.removed && b.src.removed)
 				{
 					if(a.src.removedTime > b.src.removedTime)
