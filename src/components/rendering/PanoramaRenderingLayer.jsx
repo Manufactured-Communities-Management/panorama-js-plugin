@@ -24,6 +24,10 @@ export const PanoramaRenderingLayer = LeRed.memo(({src, visible, renderOrder}) =
 	
 	LeRed.useEffect(() =>
 	{
+		if(!visible)
+		{
+			return;
+		}
 		return src.addListener({
 			onDone:
 				({textures, maskTextures}) =>
@@ -36,7 +40,7 @@ export const PanoramaRenderingLayer = LeRed.memo(({src, visible, renderOrder}) =
 					setRenderId(LeUtils.uniqueId());
 				},
 		}).remove;
-	}, [src]);
+	}, [src, visible]);
 	
 	
 	return (<>

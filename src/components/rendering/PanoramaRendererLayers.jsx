@@ -12,6 +12,9 @@ export const PanoramaRendererLayers = LeRed.memo(({src}) =>
 	
 	LeRed.useEffect(() =>
 	{
+		const now = performance.now();
+		
+		
 		/** create a lookup table **/
 		let newSrc = {};
 		LeUtils.each(src, (item, index) =>
@@ -39,7 +42,7 @@ export const PanoramaRendererLayers = LeRed.memo(({src}) =>
 			/** removed, dispose **/
 			
 			layer.visible = false;
-			layer.visibleLastTime = performance.now();
+			layer.visibleLastTime = now;
 			
 			LeUtils.setTimeout(() =>
 			{
@@ -56,7 +59,7 @@ export const PanoramaRendererLayers = LeRed.memo(({src}) =>
 		/** add new layers **/
 		LeUtils.each(newSrc, (item, basePath) =>
 		{
-			currentLayersRef.current.push({key:LeUtils.uniqueId(), src:item, visible:true});
+			currentLayersRef.current.push({key:LeUtils.uniqueId(), time:now, src:item, visible:true});
 		});
 		
 		
@@ -68,27 +71,39 @@ export const PanoramaRendererLayers = LeRed.memo(({src}) =>
 		{
 			if((a.src.styleIndex !== b.src.styleIndex) || (a.src.locationIndex !== b.src.locationIndex))
 			{
-				if(a.src.removed && b.src.removed)
+				if(!a.visible && !b.visible)
 				{
-					if(a.src.removedTime > b.src.removedTime)
+					if(a.visibleLastTime > b.visibleLastTime)
 					{
 						return A;
 					}
-					if(a.src.removedTime < b.src.removedTime)
+					if(a.visibleLastTime < b.visibleLastTime)
 					{
 						return B;
 					}
-					return 0;
 				}
-				if(a.removed)
+				else
 				{
-					return B;
+					if(!a.visible)
+					{
+						return B;
+					}
+					if(!b.visible)
+					{
+						return A;
+					}
 				}
-				if(b.removed)
+				if(a.time > b.time)
 				{
 					return A;
 				}
+				if(a.time < b.time)
+				{
+					return B;
+				}
+				return 0;
 			}
+			
 			if(a.src.layerRenderOrder < b.src.layerRenderOrder)
 			{
 				return A;
@@ -97,6 +112,7 @@ export const PanoramaRendererLayers = LeRed.memo(({src}) =>
 			{
 				return B;
 			}
+			
 			if(!a.visible && !b.visible)
 			{
 				if(a.visibleLastTime > b.visibleLastTime)
@@ -107,15 +123,25 @@ export const PanoramaRendererLayers = LeRed.memo(({src}) =>
 				{
 					return B;
 				}
-				return 0;
 			}
-			if(!a.visible)
+			else
 			{
-				return B;
+				if(!a.visible)
+				{
+					return B;
+				}
+				if(!b.visible)
+				{
+					return A;
+				}
 			}
-			if(!b.visible)
+			if(a.time > b.time)
 			{
 				return A;
+			}
+			if(a.time < b.time)
+			{
+				return B;
 			}
 			return 0;
 		});

@@ -45,8 +45,7 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, 
 			}
 			
 			/** removed, dispose **/
-			layer.src.removed = true;
-			layer.src.removedTime = performance.now();
+			layer.removed = true;
 			currentLayersRef.current = currentLayersRef.current.filter(item => (item.key !== layer.key));
 			
 			/** if not in readyLayers, dispose textures now **/
@@ -63,7 +62,7 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, 
 			let layer = {key:LeUtils.uniqueId()};
 			const onLoadingError = ({level, error}) =>
 			{
-				if(!layer.src.removed && (level <= 0))
+				if(!layer.removed && (level <= 0))
 				{
 					setError({canRetry:true, id:'could-not-load-home', message:'Couldn\'t load the home: ' + homeId, reason:STRING(LeUtils.purgeErrorMessage(error)), data:{homeId, host, homeUrl}});
 				}
@@ -119,8 +118,7 @@ export const PanoramaRendererTexturePreloader = LeRed.memo(({src, homeId, host, 
 			/** cleanup **/
 			LeUtils.each(currentLayersRef.current, (layer, index) =>
 			{
-				layer.src.removed = true;
-				layer.src.removedTime = performance.now();
+				layer.removed = true;
 				layer.src.dispose();
 			});
 			currentLayersRef.current = [];
