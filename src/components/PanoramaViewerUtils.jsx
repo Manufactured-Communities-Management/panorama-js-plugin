@@ -5,6 +5,80 @@ import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils.jsx';
 
 
 /**
+ * Returns a version string (unix timestamp, in millis).
+ *
+ * @param {Object} params
+ * @param {string} params.homeId
+ * @param {string|null} [params.homeVersion]
+ * @param {string|null} [params.host]
+ * @returns {Promise<string>}
+ */
+export const getVersionTimestamp = async (params) =>
+{
+	const {homeId, homeVersion, host} = params;
+	const {version} = await getVariationJsonData({homeId, homeVersion, host});
+	return version;
+};
+
+/**
+ * Returns a version string (unix timestamp, in millis).
+ *
+ * @param {Object} params
+ * @param {string} params.homeId
+ * @param {string|null} [params.homeVersion]
+ * @param {string|null} [params.host]
+ * @returns {[string|null, boolean, string|null]}
+ */
+export const useVersionTimestamp = (params) =>
+{
+	const {homeId, homeVersion, host} = params;
+	return LeRed.usePromises(() => getVersionTimestamp({homeId, homeVersion, host}), [homeId, homeVersion, host]);
+};
+
+
+/**
+ * Returns a version date object. Will return new Date(0) if the version timestamp is invalid.
+ *
+ * @param {Object} params
+ * @param {string} params.homeId
+ * @param {string|null} [params.homeVersion]
+ * @param {string|null} [params.host]
+ * @returns {Promise<Date>}
+ */
+export const getVersion = async (params) =>
+{
+	const {homeId, homeVersion, host} = params;
+	const {version} = await getVariationJsonData({homeId, homeVersion, host});
+	const versionInt = INT_LAX(version);
+	if(versionInt <= 0)
+	{
+		return new Date(0);
+	}
+	const versionDate = new Date(versionInt);
+	if(versionDate.toJSON() === null)
+	{
+		return new Date(0);
+	}
+	return versionDate;
+};
+
+/**
+ * Returns a version date object. Will return new Date(0) if the version timestamp is invalid.
+ *
+ * @param {Object} params
+ * @param {string} params.homeId
+ * @param {string|null} [params.homeVersion]
+ * @param {string|null} [params.host]
+ * @returns {[Date|null, boolean, string|null]}
+ */
+export const useVersion = (params) =>
+{
+	const {homeId, homeVersion, host} = params;
+	return LeRed.usePromises(() => getVersion({homeId, homeVersion, host}), [homeId, homeVersion, host]);
+};
+
+
+/**
  * Returns an object with variation group IDs as keys, and arrays of SKUs as values.
  *
  * @param {Object} params
