@@ -5,7 +5,7 @@ import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils.jsx';
 
 
 /**
- * Returns a version string (unix timestamp, in millis).
+ * Returns the version string of the home (unix timestamp, in millis).
  *
  * @param {Object} params
  * @param {string} params.homeId
@@ -13,15 +13,15 @@ import {getCorrectedGivenProps} from './utils/PanoramaPropsParsingUtils.jsx';
  * @param {string|null} [params.host]
  * @returns {Promise<string>}
  */
-export const getVersionTimestamp = async (params) =>
+export const getHomeVersion = async (params) =>
 {
 	const {homeId, homeVersion, host} = params;
 	const {version} = await getVariationJsonData({homeId, homeVersion, host});
-	return version;
+	return STRING(version);
 };
 
 /**
- * Returns a version string (unix timestamp, in millis).
+ * Returns the version string of the home (unix timestamp, in millis).
  *
  * @param {Object} params
  * @param {string} params.homeId
@@ -29,15 +29,15 @@ export const getVersionTimestamp = async (params) =>
  * @param {string|null} [params.host]
  * @returns {[string|null, boolean, string|null]}
  */
-export const useVersionTimestamp = (params) =>
+export const useHomeVersion = (params) =>
 {
 	const {homeId, homeVersion, host} = params;
-	return LeRed.usePromises(() => getVersionTimestamp({homeId, homeVersion, host}), [homeId, homeVersion, host]);
+	return LeRed.usePromises(() => getHomeVersion({homeId, homeVersion, host}), [homeId, homeVersion, host]);
 };
 
 
 /**
- * Returns a version date object. Will return new Date(0) if the version timestamp is invalid.
+ * Returns the version date of the home. Will return new Date(0) if the version timestamp is invalid.
  *
  * @param {Object} params
  * @param {string} params.homeId
@@ -45,11 +45,10 @@ export const useVersionTimestamp = (params) =>
  * @param {string|null} [params.host]
  * @returns {Promise<Date>}
  */
-export const getVersion = async (params) =>
+export const getHomeVersionDate = async (params) =>
 {
 	const {homeId, homeVersion, host} = params;
-	const {version} = await getVariationJsonData({homeId, homeVersion, host});
-	const versionInt = INT_LAX(version);
+	const versionInt = INT_LAX(await getHomeVersion({homeId, homeVersion, host}));
 	if(versionInt <= 0)
 	{
 		return new Date(0);
@@ -63,7 +62,7 @@ export const getVersion = async (params) =>
 };
 
 /**
- * Returns a version date object. Will return new Date(0) if the version timestamp is invalid.
+ * Returns the version date of the home. Will return new Date(0) if the version timestamp is invalid.
  *
  * @param {Object} params
  * @param {string} params.homeId
@@ -71,10 +70,10 @@ export const getVersion = async (params) =>
  * @param {string|null} [params.host]
  * @returns {[Date|null, boolean, string|null]}
  */
-export const useVersion = (params) =>
+export const useHomeVersionDate = (params) =>
 {
 	const {homeId, homeVersion, host} = params;
-	return LeRed.usePromises(() => getVersion({homeId, homeVersion, host}), [homeId, homeVersion, host]);
+	return LeRed.usePromises(() => getHomeVersionDate({homeId, homeVersion, host}), [homeId, homeVersion, host]);
 };
 
 
