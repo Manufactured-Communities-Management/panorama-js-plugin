@@ -12,6 +12,7 @@ from PIL import Image
 from os.path import join
 from io import IOBase
 from psutil import virtual_memory
+import hashlib
 
 
 # Function to resize an image, with antialiasing
@@ -50,19 +51,19 @@ def save_image(image: Image, fp: str | IOBase, format: str | None = None, qualit
 
     try:
         command = [
-            "/basisu",
+            '/basisu',
             input_path,
-            "-output_file", output_path,
-            "-comp_level", str(2),
-            "-q", str(quality * 2.55),  # convert 0-100 to 0-255
-            "-no_alpha",
+            '-output_file', output_path,
+            '-comp_level', str(2),
+            '-q', str(quality * 2.55),  # convert 0-100 to 0-255
+            '-no_alpha',
         ]
         if format_upper == 'KTX2':
-            command.append("-ktx2")
+            command.append('-ktx2')
         subprocess.check_call(args=command, shell=False, cwd=tempfile.tempdir, stdout=subprocess.DEVNULL)
 
         if not os.path.exists(output_path):
-            raise FileNotFoundError("Error with the basisu call, the output file doesn't exist!")
+            raise FileNotFoundError('Error with the basisu call, the output file doesn\'t exist!')
 
         if type(fp) != str:
             with open(output_path, 'rb') as f:
@@ -91,7 +92,7 @@ def optimize_opaque_image(image: Image):
 # Function to black out the parts of the image that are masked, can retain parts of the image near the mask based on the given padding radius
 def mask_image(image: Image, mask: Image, padding_radius: int = 16):
     if image.size != mask.size:
-        raise ValueError("Error in mask_image, the given image and the given mask don't have the same dimensions!")
+        raise ValueError('Error in mask_image, the given image and the given mask don\'t have the same dimensions!')
 
     binary_mask = (np.array(mask) == 0)
     padded_mask = np.pad(binary_mask, padding_radius, mode='constant', constant_values=True)
@@ -129,7 +130,7 @@ def generate_cube_faces(input_file: str, output_folder: str, use_gpu: bool = Fal
     for face in faces:
         pathlib.Path(join(output_folder, face)).unlink(missing_ok=True)
 
-    projection = "f1" if input_is_cylindrical else "f4"
+    projection = 'f1' if input_is_cylindrical else 'f4'
     pitch = 0
     text = []
     facestr = 'i a0 b0 c0 d0 e' + str(horizon_offset_pixels) + ' ' + str(projection) + ' h' + str(input_height) + ' w' + str(input_width) + ' n"' + str(input_file) + '" r0 v' + str(horizontal_angle_of_view)
@@ -186,3 +187,27 @@ def set_json_field(file: str, field: str, value: str | None = None):
 
     with open(file, 'w') as f:
         json.dump(data, f)
+
+
+# Function to get the MD5 hash of a file
+def md5_file(file: str):
+    with open(file, 'rb') as f:
+        file_hash = hashlib.md5()
+        while chunk := f.read(8192):
+            file_hash.update(chunk)
+        return file_hash.hexdigest()
+
+
+# Function to check if the content of a file is equal to the given string
+def does_file_content_equal_string(file: str, string: str):
+    try:
+        with open(file, 'r') as f:
+            return f.read().strip() == string.strip()
+    except FileNotFoundError:
+        return False
+
+
+# Function to set the content of a file to the given string
+def set_file_content(file: str, string: str):
+    with open(file, 'w') as f:
+        f.write(string)

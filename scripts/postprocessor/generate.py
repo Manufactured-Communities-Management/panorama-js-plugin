@@ -12,7 +12,7 @@ import time
 from PIL import Image
 from os.path import join
 from concurrent.futures import ProcessPoolExecutor
-from generate_utils import resize_image, save_image, optimize_opaque_image, generate_cube_faces, mask_image, get_workers_count, set_json_field, get_json_field
+from generate_utils import resize_image, save_image, optimize_opaque_image, generate_cube_faces, mask_image, get_workers_count, set_json_field, get_json_field, md5_file, does_file_content_equal_string, set_file_content
 
 
 # Obtain and test input arguments
@@ -21,7 +21,7 @@ if len(sys.argv) < 3:
     print('ERROR: You must provide the [AWS Access Key ID] and [AWS Secret Access Key] as arguments, or provide "test test" (test-mode) or "sso sso" (SSO authentication) instead')
     sys.exit(1)
 
-version = '20240917'
+version = '20241209'
 
 img_output_formats = ['ktx2']  # ['ktx2', 'webp']
 img_output_quality = 90
@@ -42,6 +42,8 @@ if not os.path.exists(input_folder):
     print('ERROR: Input directory "' + input_folder + '" doesn\'t exist')
     sys.exit(1)
 
+hashes = md5_file('/generate.py') + md5_file('/generate_utils.py')
+
 
 # Function to execute an AWS CLI command
 def aws(*args):
@@ -49,17 +51,7 @@ def aws(*args):
     return subprocess.check_call(args=command, shell=False, cwd=input_folder)
 
 
-# Function to loop files and remove previous output
-def delete_image(filepath):
-    filename_with_ext = os.path.basename(filepath)
-    filename = os.path.splitext(filename_with_ext)[0]
-
-    shutil.rmtree(join(input_folder, filename), ignore_errors=True)
-    for file_output_format in file_output_formats:
-        pathlib.Path(join(input_folder, filename + '.' + file_output_format)).unlink(missing_ok=True)
-
-
-# Function to loop files and generate tiles
+# Function to process the given input image
 def process_image(filepath):
     filename_with_ext = os.path.basename(filepath)
     filename = os.path.splitext(filename_with_ext)[0]
@@ -73,16 +65,29 @@ def process_image(filepath):
         elif potential_type.endswith('m'):
             panorama_type = 'layer_mask'
 
-    img = Image.open(filepath)
+    mask_filepath = ''
+    if panorama_type == 'layer_color':
+        mask_filename_with_ext = str(filename_with_ext).replace('c_', 'm_').replace('c.', 'm.')
+        mask_filepath = join(input_folder, mask_filename_with_ext)
 
+    input_hashes = hashes + md5_file(filepath)
+    if mask_filepath != '':
+        input_hashes += md5_file(mask_filepath)
+
+    if does_file_content_equal_string(join(input_folder, filename, '.hash'), input_hashes):
+        print(' > ' + filename + ' (cached)')
+        return
+
+    shutil.rmtree(join(input_folder, filename), ignore_errors=True)
+
+    img = Image.open(filepath)
     if panorama_type == 'layer_mask':
         img = img.convert('L')
     else:
         img = img.convert('RGB')
 
-    if panorama_type == 'layer_color':
-        mask_filename_with_ext = str(filename_with_ext).replace('c_', 'm_').replace('c.', 'm.')
-        mask = Image.open(join(input_folder, mask_filename_with_ext))
+    if mask_filepath != '':
+        mask = Image.open(mask_filepath)
         mask = mask.convert('L')
         img = mask_image(img, mask)
 
@@ -108,6 +113,8 @@ def process_image(filepath):
 
     shutil.rmtree(join(input_folder, filename, '_faces'), ignore_errors=True)
     shutil.rmtree(join(input_folder, filename, '_tmp'), ignore_errors=True)
+
+    set_file_content(join(input_folder, filename, '.hash'), input_hashes)
 
     print(' > ' + filename)
 
@@ -144,7 +151,7 @@ def action():
     # Clears the version field in variations.json, to signal it's not yet processed
     set_json_field(join(input_folder, 'variations.json'), 'version')
 
-    # Loop files and generate tiles
+    # Loop through the images and process them
     print()
     if (aws_access_key_id.lower() == 'sso-upload') and (aws_secret_access_key.lower() == 'sso-upload'):
         print('Skipping generating panorama files')
@@ -152,8 +159,6 @@ def action():
         print('Generating panorama files...')
         worker_count = get_workers_count(2.0)
         print('Threads: ' + str(worker_count))
-        with ProcessPoolExecutor(max_workers=worker_count) as executor:
-            executor.map(delete_image, glob.iglob(join(input_folder, '*.png')))
         with ProcessPoolExecutor(max_workers=worker_count) as executor:
             executor.map(process_image, glob.iglob(join(input_folder, '*.png')))
         print('Generated panorama files!')
