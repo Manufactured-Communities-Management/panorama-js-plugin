@@ -1,9 +1,12 @@
 import React from 'react';
 import {LeRed} from '@lowentry/react-redux';
 import {FLOAT_LAX_ANY} from '@lowentry/utils';
-import {SphereGeometry} from 'three';
-import {useThree} from '@react-three/fiber';
+import {SphereGeometry, Mesh, MeshBasicMaterial} from 'three';
+import {useThree, extend} from '@react-three/fiber';
 import {createCubeMaterial, createCubeTexture, dispose} from '../utils/PanoramaRendererUtils.jsx';
+
+
+extend({Mesh, MeshBasicMaterial});
 
 
 const DEFAULT_OBJECT_PARAMS = {matrixAutoUpdate:false, receiveShadow:false, castShadow:false};
