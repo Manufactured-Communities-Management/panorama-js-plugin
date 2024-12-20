@@ -39,6 +39,8 @@ export const useHomeVersion = (params) =>
 /**
  * Returns the version date of the home. Will return new Date(0) if the version timestamp is invalid.
  *
+ * The version date is the date when the home panoramas were upload.
+ *
  * @param {Object} params
  * @param {string} params.homeId
  * @param {string|null} [params.homeVersion]
@@ -64,6 +66,8 @@ export const getHomeVersionDate = async (params) =>
 /**
  * Returns the version date of the home. Will return new Date(0) if the version timestamp is invalid.
  *
+ * The version date is the date when the home panoramas were upload.
+ *
  * @param {Object} params
  * @param {string} params.homeId
  * @param {string|null} [params.homeVersion]
@@ -74,6 +78,52 @@ export const useHomeVersionDate = (params) =>
 {
 	const {homeId, homeVersion, host} = params;
 	return LeRed.usePromises(() => getHomeVersionDate({homeId, homeVersion, host}), [homeId, homeVersion, host]);
+};
+
+
+/**
+ * Returns the render date of the home. Will return new Date(0) if the render timestamp is invalid.
+ *
+ * The render date is the date when the home panoramas were rendered.
+ *
+ * @param {Object} params
+ * @param {string} params.homeId
+ * @param {string|null} [params.homeVersion]
+ * @param {string|null} [params.host]
+ * @returns {Promise<Date>}
+ */
+export const getHomeRenderDate = async (params) =>
+{
+	const {homeId, homeVersion, host} = params;
+	const {data:variationData} = await getVariationJsonData({homeId, homeVersion, host});
+	const renderDateInt = INT_LAX(variationData?.renderDate);
+	if(renderDateInt <= 0)
+	{
+		return new Date(0);
+	}
+	const renderDate = new Date(renderDateInt);
+	if(renderDate.toJSON() === null)
+	{
+		return new Date(0);
+	}
+	return renderDate;
+};
+
+/**
+ * Returns the render date of the home. Will return new Date(0) if the render timestamp is invalid.
+ *
+ * The render date is the date when the home panoramas were rendered.
+ *
+ * @param {Object} params
+ * @param {string} params.homeId
+ * @param {string|null} [params.homeVersion]
+ * @param {string|null} [params.host]
+ * @returns {[Date|null, boolean, string|null]}
+ */
+export const useHomeRenderDate = (params) =>
+{
+	const {homeId, homeVersion, host} = params;
+	return LeRed.usePromises(() => getHomeRenderDate({homeId, homeVersion, host}), [homeId, homeVersion, host]);
 };
 
 
