@@ -66,7 +66,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, calculateFov, onFov
 	
 	const setInitialCameraRotation = (rotation, instant) =>
 	{
-		const newRotation = {yaw:MathUtils.degToRad(FLOAT_LAX_ANY(rotation?.yaw, 0) - CUBEMAP_YAW_OFFSET), pitch:MathUtils.clamp(MathUtils.degToRad(FLOAT_LAX_ANY(rotation?.pitch, 0)), -Math.PI / 2, Math.PI / 2)};
+		const newRotation = {yaw:MathUtils.degToRad(CUBEMAP_YAW_OFFSET - FLOAT_LAX_ANY(rotation?.yaw, 0)), pitch:MathUtils.clamp(MathUtils.degToRad(FLOAT_LAX_ANY(rotation?.pitch, 0)), -Math.PI / 2, Math.PI / 2)};
 		if(instant)
 		{
 			cameraRotation.current = newRotation;
@@ -271,7 +271,7 @@ export const PanoramaControls = LeRed.memo(({minFov, maxFov, calculateFov, onFov
 				let yaw = MathUtils.radToDeg(cameraRotation.current.yaw);
 				let pitch = MathUtils.radToDeg(cameraRotation.current.pitch);
 				
-				yaw += CUBEMAP_YAW_OFFSET;
+				yaw = CUBEMAP_YAW_OFFSET - yaw;
 				while(yaw < 0)
 				{
 					yaw += 360;
