@@ -7,7 +7,7 @@
 
 # @mcmhomes/panorama-viewer
 
-**@mcmhomes/panorama-viewer** is a React library, made for visualizing the panorama pictures made by the [MCM Panorama UnrealEngine plugin][panorama-ue-plugin].
+**@mcmhomes/panorama-viewer** is an open-source React library, made for visualizing the panorama pictures made by the [MCM Panorama UnrealEngine plugin][panorama-ue-plugin].
 
 
 ## Installation
@@ -83,3 +83,13 @@ The [MCM Panorama Demo Frontend][panorama-frontend] (whether it's running locall
     - local demo frontend: `http://localhost:8000/?c=http://localhost:8080`
     - production demo frontend: `https://d11xh1fqz0z9k8.cloudfront.net/?c=http://localhost:8080`
     - the URL can be any URL, including any path, port number, etc, so a URL like this is also valid: `http://localhost/my-panorama-pictures`
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+
+## Contributing
+
+Contributions are welcome! Please read the [CONTRIBUTING.md](CONTRIBUTING.md) for details on the process for submitting pull requests.

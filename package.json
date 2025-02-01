@@ -5,7 +5,7 @@
   "main": "./index.js",
   "description": "Provides React components to render panoramas.",
   "author": "MCM Homes",
-  "license": "proprietary",
+  "license": "MIT",
   "keywords": [
     "mcmhomes",
     "react",
